@@ -1,0 +1,301 @@
+# GitHub Agent Dashboard API - LLM Integration Guide
+
+This file provides comprehensive information about the GitHub Agent Dashboard API for LLM integration in Cursor IDE.
+
+## API Overview
+
+The GitHub Agent Dashboard API is a comprehensive project management and AI automation service that provides:
+- Project/repository management and analysis
+- AI-powered todo list generation
+- Automated project recaps and summaries
+- Intelligent chat assistance for codebases
+- Real-time webhooks for integration notifications
+
+Base URL: https://your-domain.com
+API Version: 1.0
+Authentication: API Key (Bearer token or X-API-Key header)
+
+## Authentication
+
+All API requests require authentication using an API key:
+
+```
+Authorization: Bearer gha_your_api_key_here
+```
+
+or
+
+```
+X-API-Key: gha_your_api_key_here
+```
+
+## Core API Endpoints
+
+### 1. Health Check
+GET /api/v1/status
+- Purpose: Check API health and service availability
+- No authentication required
+- Returns: System status, service health, rate limits
+
+### 2. Project Management
+
+#### List Projects
+GET /api/v1/projects
+- Purpose: Get all projects/repositories for user
+- Parameters: limit, offset, search, language
+- Returns: Array of projects with metadata
+
+#### Import Project
+POST /api/v1/projects
+- Purpose: Import new project from GitHub URL
+- Required: github_url
+- Optional: auto_analyze (boolean)
+- Returns: Imported project details
+
+### 3. AI Todo Generation
+
+#### List Todos
+GET /api/v1/todos
+- Purpose: Get todo lists for user
+- Parameters: project_id, status, include_items
+- Returns: Array of todo lists with items
+
+#### Create Todo List
+POST /api/v1/todos
+- Purpose: Create new todo list (manual or AI-generated)
+- For AI generation:
+  - Set ai_generate: true
+  - Provide project_id
+  - Optional context_prompt for specific focus
+- Returns: Todo list with generated items
+
+### 4. Project Recaps
+
+#### Generate Recap
+POST /api/v1/recaps
+- Purpose: Generate AI-powered project summary
+- Required: project_id
+- Parameters: period (daily/weekly/monthly/quarterly)
+- Optional: custom_context, include_commits, include_issues, include_prs
+- Returns: Comprehensive project recap with metrics
+
+### 5. AI Chat Assistant
+
+#### Chat with AI
+POST /api/v1/ai/chat
+- Purpose: Ask questions about projects and get AI responses
+- Required: message
+- Optional: project_id (for project context), conversation_id
+- Returns: AI response with conversation tracking
+
+### 6. Webhooks
+
+#### Register Webhook
+POST /api/v1/webhooks
+- Purpose: Register webhook for real-time notifications
+- Required: url, events (array)
+- Events: project.created, project.updated, todo.created, todo.completed, recap.generated
+- Returns: Webhook configuration
+
+## Usage Patterns for Cursor/LLM Integration
+
+### Pattern 1: Automatic Project Todo Generation
+When starting work on a project, automatically generate todos:
+
+```javascript
+const response = await fetch('https://your-domain.com/api/v1/todos', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer gha_your_api_key',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    title: 'Sprint Planning Tasks',
+    project_id: 'proj_123',
+    ai_generate: true,
+    context_prompt: 'Focus on code quality, testing, and performance improvements'
+  })
+});
+```
+
+### Pattern 2: Project Status Recaps
+Generate weekly/daily project summaries:
+
+```javascript
+const recap = await fetch('https://your-domain.com/api/v1/recaps', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer gha_your_api_key',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    project_id: 'proj_123',
+    period: 'weekly',
+    custom_context: 'Highlight performance improvements and bug fixes'
+  })
+});
+```
+
+### Pattern 3: Contextual AI Assistance
+Get AI help about specific projects:
+
+```javascript
+const aiResponse = await fetch('https://your-domain.com/api/v1/ai/chat', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer gha_your_api_key',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    message: 'What are the recent changes and what should I work on next?',
+    project_id: 'proj_123'
+  })
+});
+```
+
+### Pattern 4: Webhook Integration
+Set up real-time notifications for your application:
+
+```javascript
+const webhook = await fetch('https://your-domain.com/api/v1/webhooks', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer gha_your_api_key',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    url: 'https://your-app.com/webhook/github-agent',
+    events: ['project.created', 'todo.completed', 'recap.generated'],
+    project_id: 'proj_123'
+  })
+});
+```
+
+## Cursor Integration Examples
+
+### Example 1: Auto-generate todos when opening a project
+```typescript
+// In your Cursor workspace rules
+export async function onProjectOpen(projectPath: string) {
+  // Import project if not exists
+  const project = await importProject(projectPath);
+  
+  // Generate AI todos
+  await generateProjectTodos(project.id, 'Focus on immediate development priorities');
+  
+  // Display todos in Cursor sidebar
+  showTodosPanel();
+}
+```
+
+### Example 2: Daily standup recap generation
+```typescript
+export async function generateDailyStandup(projectId: string) {
+  const recap = await fetch('/api/v1/recaps', {
+    method: 'POST',
+    body: JSON.stringify({
+      project_id: projectId,
+      period: 'daily',
+      custom_context: 'Prepare summary for daily standup meeting'
+    })
+  });
+  
+  return recap.data.recap.summary; // Use in standup
+}
+```
+
+### Example 3: Context-aware coding assistance
+```typescript
+export async function getContextualHelp(question: string, projectId: string) {
+  const response = await fetch('/api/v1/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify({
+      message: `Based on this project's current state: ${question}`,
+      project_id: projectId
+    })
+  });
+  
+  return response.data.response; // Display in Cursor chat
+}
+```
+
+## Rate Limits
+
+- 1000 requests per day per API key
+- 100 requests per hour per API key
+- 500 AI requests per day per API key
+
+Rate limit headers in responses:
+- X-RateLimit-Limit
+- X-RateLimit-Remaining  
+- X-RateLimit-Reset
+
+## Error Handling
+
+All API responses follow this format:
+```json
+{
+  "success": true/false,
+  "data": {...},
+  "error": {
+    "message": "Error description",
+    "code": "ERROR_CODE",
+    "status": 400
+  },
+  "timestamp": "2024-01-01T00:00:00Z",
+  "api_version": "1.0"
+}
+```
+
+Common error codes:
+- AUTH_FAILED: Invalid API key
+- RATE_LIMIT_EXCEEDED: Too many requests
+- PROJECT_NOT_FOUND: Invalid project ID
+- AI_GENERATION_FAILED: AI service error
+- VALIDATION_ERROR: Invalid request parameters
+
+## Best Practices for LLM Integration
+
+1. **Project Context**: Always provide project_id when available for better AI responses
+2. **Batch Operations**: Use pagination for large datasets
+3. **Error Handling**: Implement proper retry logic for rate limits
+4. **Webhooks**: Use webhooks instead of polling for real-time updates
+5. **Caching**: Cache project metadata to reduce API calls
+6. **Context Prompts**: Provide specific context prompts for better AI-generated content
+
+## Webhook Events
+
+Available webhook events:
+- `project.created`: New project imported
+- `project.updated`: Project metadata updated
+- `project.analyzed`: AI analysis completed
+- `todo.created`: New todo list created
+- `todo.updated`: Todo list modified
+- `todo.completed`: Todo items marked complete
+- `recap.generated`: New recap created
+- `ai.chat.completed`: AI chat response generated
+- `analysis.completed`: Repository analysis finished
+
+Webhook payload format:
+```json
+{
+  "event": "project.created",
+  "project_id": "proj_123",
+  "data": {
+    "name": "my-project",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  "timestamp": "2024-01-01T00:00:00Z",
+  "source": "github_agent_dashboard"
+}
+```
+
+## Security Notes
+
+- API keys should be stored securely and never committed to code
+- Use environment variables for API keys
+- Webhook secrets should be used for verification
+- API keys can be scoped to specific permissions
+- All API traffic is over HTTPS
+
+This API is designed to enhance development workflows by providing AI-powered project insights, automated task generation, and comprehensive project monitoring capabilities.

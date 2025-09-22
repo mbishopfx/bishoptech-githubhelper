@@ -1,0 +1,66 @@
+{
+  "name": "@github-agent/sdk",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for GitHub Agent Dashboard - AI-powered repository management and Slack integration",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "github",
+    "ai",
+    "langraph",
+    "slack",
+    "repository",
+    "analysis",
+    "sdk",
+    "typescript",
+    "nodejs"
+  ],
+  "author": {
+    "name": "GitHub Agent Dashboard",
+    "email": "support@github-agent-dashboard.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/github-agent-dashboard.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github-agent-dashboard.com",
+  "bugs": {
+    "url": "https://github.com/yourusername/github-agent-dashboard/issues"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.8",
+    "@types/node": "^20.9.0",
+    "jest": "^29.7.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.5.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

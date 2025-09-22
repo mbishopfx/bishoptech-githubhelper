@@ -1,26 +1,260 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark theme variables (macOS Tahoe inspired) */
+  --background: #0f1419;
+  --foreground: #e1e5f2;
+  --card: rgba(20, 24, 35, 0.7);
+  --card-foreground: #e1e5f2;
+  --popover: rgba(20, 24, 35, 0.95);
+  --popover-foreground: #e1e5f2;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(51, 65, 85, 0.8);
+  --secondary-foreground: #e1e5f2;
+  --muted: rgba(30, 41, 59, 0.5);
+  --muted-foreground: #94a3b8;
+  --accent: rgba(59, 130, 246, 0.1);
+  --accent-foreground: #e1e5f2;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(51, 65, 85, 0.3);
+  --input: rgba(30, 41, 59, 0.5);
+  --ring: #3b82f6;
+  --radius: 0.75rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #0f1419 0%, #1a202c 25%, #2d3748 50%, #1a202c 75%, #0f1419 100%);
+  background-attachment: fixed;
+  font-family: var(--font-sans);
+  font-feature-settings: 'rlig' 1, 'calt' 1;
+  min-height: 100vh;
+}
+
+/* Glassmorphism utilities */
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-xl bg-white/[0.08] border border-white/[0.12];
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  .glass-card {
+    @apply glass rounded-2xl;
+  }
+  
+  .glass-strong {
+    @apply backdrop-blur-2xl bg-white/[0.12] border border-white/[0.15];
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  }
+  
+  .glass-subtle {
+    @apply backdrop-blur-md bg-white/[0.04] border border-white/[0.08];
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  .glow {
+    @apply shadow-lg;
+    box-shadow: 
+      0 0 20px rgba(59, 130, 246, 0.3),
+      0 0 40px rgba(59, 130, 246, 0.1);
+  }
+
+  .glow-strong {
+    box-shadow: 
+      0 0 30px rgba(59, 130, 246, 0.5),
+      0 0 60px rgba(59, 130, 246, 0.2);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 20, 25, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+/* Selection styles */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: white;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Input and form styles */
+input, textarea, select {
+  @apply glass-subtle rounded-lg px-4 py-2 text-white placeholder:text-gray-400;
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  @apply ring-2 ring-blue-500/50 border-blue-500/50;
+}
+
+/* Button base styles */
+button {
+  transition: all 0.2s ease;
+}
+
+/* Loading animations */
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); 
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6); 
+  }
+}
+
+.loading-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* macOS-style blur effects */
+.macos-blur {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Hover and interaction states */
+.interactive {
+  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.interactive:active {
+  transform: translateY(0);
+}
+
+/* Typography enhancements */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Code blocks */
+code, pre {
+  @apply glass-subtle rounded-lg font-mono text-sm;
+}
+
+pre {
+  @apply p-4 overflow-x-auto;
+}
+
+code:not(pre code) {
+  @apply px-2 py-1 text-xs;
+}
+
+/* Additional layout utilities */
+.main-layout {
+  @apply min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900;
+}
+
+.dashboard-content {
+  @apply p-6 space-y-8;
+}
+
+/* Sidebar styles */
+.sidebar-item {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200;
+}
+
+.sidebar-item.active {
+  @apply bg-blue-500/20 border border-blue-500/30 text-blue-400 shadow-lg;
+}
+
+.sidebar-item:not(.active) {
+  @apply text-gray-300 hover:text-white hover:bg-white/5;
+}
+
+/* Stats cards */
+.stat-card {
+  @apply glass-card p-6 rounded-2xl interactive hover:scale-105;
+}
+
+/* Quick action cards */
+.action-card {
+  @apply glass-card p-6 rounded-2xl interactive hover:scale-105 block relative overflow-hidden;
+}
+
+/* Activity item */
+.activity-item {
+  @apply glass-card p-4 rounded-xl;
 }
