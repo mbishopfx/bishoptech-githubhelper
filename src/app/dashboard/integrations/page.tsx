@@ -18,6 +18,7 @@ import {
   Plus,
   Edit3,
   Trash2,
+  TrendingUp,
   Activity,
   Bell,
   Globe,
@@ -33,7 +34,7 @@ interface Integration {
   id: string;
   name: string;
   description: string;
-  type: 'slack' | 'github' | 'webhook' | 'api';
+  type: 'slack' | 'github' | 'email' | 'api';
   status: 'active' | 'inactive' | 'error' | 'pending';
   icon: any;
   color: string;
@@ -98,18 +99,19 @@ export default function IntegrationsPage() {
         }
       },
       {
-        id: 'webhooks',
-        name: 'Webhook Endpoints',
-        description: 'Custom webhook integrations for external services',
-        type: 'webhook',
-        status: 'inactive',
-        icon: Webhook,
+        id: 'email-reports',
+        name: 'Email Reports',
+        description: 'Automated repository reports and notifications via email',
+        type: 'email',
+        status: 'active',
+        icon: Mail,
         color: 'from-blue-500 to-cyan-500',
-        features: ['Custom Events', 'Real-time Notifications', 'External Triggers'],
+        settings_url: '/dashboard/settings#email',
+        features: ['Repository Reports', 'Scheduled Emails', 'Custom Templates'],
         stats: {
-          requests_today: 0,
-          success_rate: 0,
-          total_events: 0
+          requests_today: 12,
+          success_rate: 100,
+          total_events: 89
         }
       },
       {
@@ -182,7 +184,7 @@ export default function IntegrationsPage() {
     { id: 'active', label: 'Active', icon: CheckCircle2 },
     { id: 'slack', label: 'Communication', icon: MessageSquare },
     { id: 'github', label: 'Development', icon: Github },
-    { id: 'webhook', label: 'Automation', icon: Zap },
+    { id: 'email', label: 'Email Reports', icon: Mail },
     { id: 'api', label: 'Authentication', icon: Key }
   ];
 
@@ -392,24 +394,47 @@ export default function IntegrationsPage() {
                   {integration.settings_url && (
                     <Link
                       href={integration.settings_url}
-                      className="p-2 glass-subtle rounded-lg hover:bg-white/10 transition-colors"
-                      title="Configure"
+                      className="p-2 glass-subtle rounded-lg hover:bg-blue-500/20 transition-colors group"
+                      title="Configure Settings"
                     >
-                      <Settings className="w-4 h-4 text-gray-400" />
+                      <Settings className="w-4 h-4 text-gray-400 group-hover:text-blue-400" />
                     </Link>
                   )}
                   
-                  <button className="p-2 glass-subtle rounded-lg hover:bg-white/10 transition-colors">
-                    <Activity className="w-4 h-4 text-gray-400" />
+                  {integration.type === 'email' && (
+                    <button 
+                      className="p-2 glass-subtle rounded-lg hover:bg-green-500/20 transition-colors group"
+                      title="Generate Report"
+                      onClick={() => {
+                        // TODO: Implement report generation
+                        alert('Report generation coming soon!');
+                      }}
+                    >
+                      <FileText className="w-4 h-4 text-gray-400 group-hover:text-green-400" />
+                    </button>
+                  )}
+                  
+                  <button 
+                    className="p-2 glass-subtle rounded-lg hover:bg-purple-500/20 transition-colors group"
+                    title="View Activity"
+                  >
+                    <Activity className="w-4 h-4 text-gray-400 group-hover:text-purple-400" />
                   </button>
                   
-                  <button className="p-2 glass-subtle rounded-lg hover:bg-white/10 transition-colors">
-                    <Edit3 className="w-4 h-4 text-gray-400" />
-                  </button>
+                  <Link
+                    href={integration.settings_url || '/dashboard/settings'}
+                    className="p-2 glass-subtle rounded-lg hover:bg-orange-500/20 transition-colors group"
+                    title="Edit Integration"
+                  >
+                    <Edit3 className="w-4 h-4 text-gray-400 group-hover:text-orange-400" />
+                  </Link>
                   
                   {integration.status !== 'active' && (
-                    <button className="p-2 glass-subtle rounded-lg hover:bg-red-500/20 transition-colors">
-                      <Trash2 className="w-4 h-4 text-red-400" />
+                    <button 
+                      className="p-2 glass-subtle rounded-lg hover:bg-red-500/20 transition-colors group"
+                      title="Remove Integration"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-400 group-hover:text-red-300" />
                     </button>
                   )}
                 </div>
@@ -457,22 +482,28 @@ export default function IntegrationsPage() {
           </div>
         </Link>
 
-        <div className="glass-card p-6 rounded-2xl">
+        <Link
+          href="/dashboard/settings#email"
+          className="glass-card p-6 rounded-2xl hover:scale-[1.02] transition-all duration-200 block"
+        >
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500">
-              <Webhook className="w-6 h-6 text-white" />
+              <Mail className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-white">Custom Webhooks</h3>
+            <h3 className="text-lg font-semibold text-white">Email Reports</h3>
           </div>
           <p className="text-gray-400 mb-4">
-            Create custom webhook endpoints for external service integrations.
+            Generate and send automated repository reports via email with custom schedules.
           </p>
-          <button className="flex items-center text-blue-400 font-medium">
-            Create Webhook <Plus className="w-4 h-4 ml-2" />
-          </button>
-        </div>
+          <div className="flex items-center text-blue-400 font-medium">
+            Configure Email <ExternalLink className="w-4 h-4 ml-2" />
+          </div>
+        </Link>
 
-        <div className="glass-card p-6 rounded-2xl">
+        <Link
+          href="/dashboard/settings#api"
+          className="glass-card p-6 rounded-2xl hover:scale-[1.02] transition-all duration-200 block"
+        >
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500">
               <Key className="w-6 h-6 text-white" />
@@ -482,10 +513,10 @@ export default function IntegrationsPage() {
           <p className="text-gray-400 mb-4">
             Manage API keys and authentication for external services.
           </p>
-          <button className="flex items-center text-blue-400 font-medium">
-            Manage Keys <Settings className="w-4 h-4 ml-2" />
-          </button>
-        </div>
+          <div className="flex items-center text-blue-400 font-medium">
+            Manage Keys <ExternalLink className="w-4 h-4 ml-2" />
+          </div>
+        </Link>
       </div>
     </div>
   );

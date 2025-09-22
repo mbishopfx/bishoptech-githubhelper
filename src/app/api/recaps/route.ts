@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Octokit } from '@octokit/rest';
+import { getRepositoryDeploymentStatus } from '@/lib/vercel';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -166,10 +167,14 @@ export async function POST(request: NextRequest) {
       // Continue with default values if GitHub API fails
     }
 
-    // Generate AI summary based on the data
-    const summary = generateAISummary(repository, githubData, timeRange);
-    const keyUpdates = generateKeyUpdates(githubData);
-    const actionItems = generateActionItems(repository, githubData);
+    // Get deployment status and information
+    const deploymentInfo = await getRepositoryDeploymentStatus(repository);
+    console.log(`Deployment info for ${repository.full_name}:`, deploymentInfo);
+
+    // Generate AI summary based on the data including deployment info
+    const summary = generateAISummary(repository, githubData, timeRange, deploymentInfo);
+    const keyUpdates = generateKeyUpdates(githubData, deploymentInfo);
+    const actionItems = generateActionItems(repository, githubData, deploymentInfo);
 
     // Create recap in database
     const { data: recap, error: recapError } = await supabase
@@ -186,7 +191,8 @@ export async function POST(request: NextRequest) {
           commits: githubData.commits,
           issues_closed: githubData.issues_closed,
           prs_merged: githubData.prs_merged,
-          lines_changed: githubData.lines_changed
+          lines_changed: githubData.lines_changed,
+          deployment: deploymentInfo
         },
         date_range: {
           start: startDate.toISOString(),
@@ -220,7 +226,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generateAISummary(repository: any, githubData: any, timeRange: string): string {
+function generateAISummary(repository: any, githubData: any, timeRange: string, deploymentInfo?: any): string {
   const timeLabel = timeRange === 'week' ? 'This week' : timeRange === 'month' ? 'This month' : 'This quarter';
   
   let summary = `${timeLabel} showed `;
@@ -243,10 +249,25 @@ function generateAISummary(repository: any, githubData: any, timeRange: string):
   
   summary += `The team maintained focus on code quality and feature delivery for the ${repository.language || 'project'} codebase.`;
   
+  // Add deployment status information
+  if (deploymentInfo?.isDeployed) {
+    summary += ` The project is actively deployed on ${deploymentInfo.deploymentPlatform || 'production'}`;
+    if (deploymentInfo.productionUrl) {
+      summary += ` and accessible at ${deploymentInfo.productionUrl}`;
+    }
+    if (deploymentInfo.lastDeployment) {
+      const deployDate = new Date(deploymentInfo.lastDeployment.date).toLocaleDateString();
+      summary += `. Latest deployment was on ${deployDate} with status: ${deploymentInfo.lastDeployment.status}`;
+    }
+    summary += '.';
+  } else {
+    summary += ' The project is not currently deployed to production.';
+  }
+  
   return summary;
 }
 
-function generateKeyUpdates(githubData: any): string[] {
+function generateKeyUpdates(githubData: any, deploymentInfo?: any): string[] {
   const updates = [];
   
   if (githubData.commits > 0) {
@@ -274,6 +295,16 @@ function generateKeyUpdates(githubData: any): string[] {
     updates.push('Strong collaboration with multiple pull request reviews');
   }
   
+  // Add deployment-related updates
+  if (deploymentInfo?.isDeployed) {
+    if (deploymentInfo.productionUrl) {
+      updates.push(`Project is live and accessible at ${deploymentInfo.productionUrl}`);
+    }
+    if (deploymentInfo.lastDeployment) {
+      updates.push(`Latest deployment completed successfully on ${deploymentInfo.deploymentPlatform || 'production'}`);
+    }
+  }
+
   if (updates.length === 0) {
     updates.push('Repository maintenance and monitoring continued');
   }
@@ -281,7 +312,7 @@ function generateKeyUpdates(githubData: any): string[] {
   return updates;
 }
 
-function generateActionItems(repository: any, githubData: any): string[] {
+function generateActionItems(repository: any, githubData: any, deploymentInfo?: any): string[] {
   const items = [];
   
   if (githubData.commits > 20) {
@@ -304,6 +335,14 @@ function generateActionItems(repository: any, githubData: any): string[] {
   if (repository.language) {
     items.push(`Review ${repository.language} best practices and code standards`);
   }
+
+  // Add deployment-related action items
+  if (!deploymentInfo?.isDeployed) {
+    items.push('Set up deployment pipeline and production environment');
+    items.push('Configure domain and deployment automation');
+  } else if (deploymentInfo?.lastDeployment?.status !== 'READY') {
+    items.push('Investigate and fix deployment issues');
+  }
   
-  return items.slice(0, 5); // Limit to 5 action items
+  return items.slice(0, 6); // Limit to 6 action items (increased for deployment items)
 }

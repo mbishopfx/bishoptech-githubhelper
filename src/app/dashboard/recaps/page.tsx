@@ -25,6 +25,7 @@ import {
   Target,
   ArrowRight
 } from 'lucide-react';
+import { AdvancedLoadingAnimation, RECAP_GENERATION_STEPS } from '@/components/ui/loading-animations';
 
 interface Recap {
   id: string;
@@ -58,6 +59,7 @@ export default function RecapsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, ai, manual
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [repositories, setRepositories] = useState<any[]>([]);
   const [showNewRecapModal, setShowNewRecapModal] = useState(false);
 
@@ -97,6 +99,16 @@ export default function RecapsPage() {
 
   const generateAIRecap = async (repositoryId: string, timeRange: 'week' | 'month' | 'quarter') => {
     setIsGenerating(true);
+    setGenerationProgress(0);
+    
+    // Simulate progress during the analysis
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => {
+        if (prev < 85) return prev + Math.random() * 12;
+        return prev;
+      });
+    }, 1000);
+
     try {
       const response = await fetch('/api/recaps', {
         method: 'POST',
@@ -112,17 +124,29 @@ export default function RecapsPage() {
 
       const data = await response.json();
       
+      // Complete progress
+      setGenerationProgress(100);
+      
       if (data.success) {
+        console.log('✅ AI recap generated successfully:', data.message);
+        console.log('📊 Recap includes deployment info:', !!data.recap?.metrics?.deployment);
+        
         // Refresh recaps to show the new one
-        loadRecaps();
-        console.log('AI recap generated:', data.message);
+        setTimeout(() => {
+          loadRecaps();
+        }, 1000);
       } else {
         console.error('Failed to generate AI recap:', data.error);
       }
     } catch (error) {
       console.error('Error generating AI recap:', error);
     } finally {
-      setIsGenerating(false);
+      clearInterval(progressInterval);
+      // Keep loading animation visible for a moment to show completion
+      setTimeout(() => {
+        setIsGenerating(false);
+        setGenerationProgress(0);
+      }, 1500);
     }
   };
 
@@ -181,7 +205,17 @@ export default function RecapsPage() {
   const filteredRecaps = getFilteredRecaps();
 
   return (
-    <div className="space-y-8">
+    <>
+      {/* Advanced Loading Animation */}
+      <AdvancedLoadingAnimation
+        isVisible={isGenerating}
+        title="Generating Project Recap"
+        subtitle="Analyzing repository activity and deployment status to create comprehensive summary"
+        steps={RECAP_GENERATION_STEPS}
+        progress={generationProgress}
+      />
+      
+      <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -451,31 +485,93 @@ export default function RecapsPage() {
 
                 {/* Metrics */}
                 {selectedRecapData.metrics && (
-                  <div className="grid grid-cols-4 gap-4 p-4 glass-subtle rounded-xl">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-white">
-                        {selectedRecapData.metrics.commits}
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-4 gap-4 p-4 glass-subtle rounded-xl">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-white">
+                          {selectedRecapData.metrics.commits}
+                        </div>
+                        <div className="text-xs text-gray-400">Commits</div>
                       </div>
-                      <div className="text-xs text-gray-400">Commits</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-400">
-                        {selectedRecapData.metrics.issues_closed}
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-400">
+                          {selectedRecapData.metrics.issues_closed}
+                        </div>
+                        <div className="text-xs text-gray-400">Issues Closed</div>
                       </div>
-                      <div className="text-xs text-gray-400">Issues Closed</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-400">
-                        {selectedRecapData.metrics.prs_merged}
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-400">
+                          {selectedRecapData.metrics.prs_merged}
+                        </div>
+                        <div className="text-xs text-gray-400">PRs Merged</div>
                       </div>
-                      <div className="text-xs text-gray-400">PRs Merged</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-400">
-                        {selectedRecapData.metrics.lines_changed.toLocaleString()}
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-400">
+                          {selectedRecapData.metrics.lines_changed.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-gray-400">Lines Changed</div>
                       </div>
-                      <div className="text-xs text-gray-400">Lines Changed</div>
                     </div>
+
+                    {/* Deployment Information */}
+                    {selectedRecapData.metrics.deployment && (
+                      <div className="p-4 glass-subtle rounded-xl">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-white">Deployment Status</h4>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            selectedRecapData.metrics.deployment.isDeployed 
+                              ? 'bg-green-500/20 text-green-400' 
+                              : 'bg-red-500/20 text-red-400'
+                          }`}>
+                            {selectedRecapData.metrics.deployment.isDeployed ? 'Live' : 'Not Deployed'}
+                          </div>
+                        </div>
+                        
+                        {selectedRecapData.metrics.deployment.isDeployed && (
+                          <div className="space-y-2">
+                            {selectedRecapData.metrics.deployment.productionUrl && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">Production:</span>
+                                <a 
+                                  href={selectedRecapData.metrics.deployment.productionUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-400 hover:text-blue-300 underline flex items-center gap-1"
+                                >
+                                  {selectedRecapData.metrics.deployment.productionUrl}
+                                  <ArrowRight className="w-3 h-3" />
+                                </a>
+                              </div>
+                            )}
+                            
+                            {selectedRecapData.metrics.deployment.deploymentPlatform && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">Platform:</span>
+                                <span className="text-xs text-white">
+                                  {selectedRecapData.metrics.deployment.deploymentPlatform}
+                                </span>
+                              </div>
+                            )}
+
+                            {selectedRecapData.metrics.deployment.lastDeployment && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400">Last Deploy:</span>
+                                <span className="text-xs text-white">
+                                  {new Date(selectedRecapData.metrics.deployment.lastDeployment.date).toLocaleDateString()}
+                                </span>
+                                <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                  selectedRecapData.metrics.deployment.lastDeployment.status === 'READY'
+                                    ? 'bg-green-500/20 text-green-400'
+                                    : 'bg-orange-500/20 text-orange-400'
+                                }`}>
+                                  {selectedRecapData.metrics.deployment.lastDeployment.status}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -567,5 +663,6 @@ export default function RecapsPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

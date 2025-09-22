@@ -47,7 +47,6 @@ interface QuickAction {
   href: string;
   icon: any;
   color: string;
-  badge?: string;
 }
 
 export default function Overview() {
@@ -303,12 +302,6 @@ export default function Overview() {
                     href={action.href}
                     className="glass-card p-6 rounded-2xl interactive hover:scale-105 block relative overflow-hidden"
                   >
-                    {action.badge && (
-                      <span className="absolute top-3 right-3 px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
-                        {action.badge}
-                      </span>
-                    )}
-                    
                     <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${action.color} mb-4`}>
                       <action.icon className="w-6 h-6 text-white" />
                     </div>

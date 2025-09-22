@@ -24,7 +24,9 @@ import {
   ListTodo,
   BarChart3,
   X,
-  Loader2
+  Loader2,
+  Mail,
+  Send
 } from 'lucide-react';
 
 interface Repository {
@@ -54,6 +56,9 @@ export default function RepositoriesPage() {
   const [showAIModal, setShowAIModal] = useState(false);
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
   const [aiActionLoading, setAiActionLoading] = useState<string | null>(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailRecipient, setEmailRecipient] = useState('matt@bishoptech.dev');
 
   useEffect(() => {
     setMounted(true);
@@ -84,8 +89,74 @@ export default function RepositoriesPage() {
     setShowAIModal(true);
   };
 
+  const sendEmailReport = async () => {
+    if (!selectedRepo || !emailRecipient) return;
+    
+    setAiActionLoading('email-report');
+    setShowEmailModal(false);
+    
+    try {
+      // Generate and email comprehensive report
+      const reportResponse = await fetch('/api/reports/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          repositoryId: selectedRepo.id,
+          periodStart: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          periodEnd: new Date().toISOString(),
+        }),
+      });
+
+      const reportData = await reportResponse.json();
+      if (reportData.success) {
+        // Now email the report with custom subject and recipient
+        const emailResponse = await fetch('/api/reports/email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+            body: JSON.stringify({
+              reportId: reportData.data.reportId,
+              repositoryId: selectedRepo.id,
+              periodStart: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+              periodEnd: new Date().toISOString(),
+              recipients: [emailRecipient],
+              customSubject: emailSubject,
+            }),
+        });
+
+        const emailData = await emailResponse.json();
+        if (emailData.success) {
+          alert(`📧 Comprehensive repository report for "${selectedRepo.name}" has been sent to ${emailRecipient}!\n\nSubject: ${emailSubject}\n\nReport includes:\n• Repository metrics & complexity analysis\n• Code quality & security scores\n• Language breakdown & file activity\n• Team collaboration statistics\n• Executive summary & recommendations`);
+        } else {
+          console.error('Email sending failed:', emailData.error);
+          alert('Report generated but email sending failed. Check console for details.');
+        }
+      } else {
+        console.error('Report generation failed:', reportData.error);
+        alert('Failed to generate repository report. Check console for details.');
+      }
+    } catch (error) {
+      console.error('Error sending email report:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Something went wrong'}`);
+    } finally {
+      setAiActionLoading(null);
+      setSelectedRepo(null);
+    }
+  };
+
   const handleAIAction = async (action: string) => {
     if (!selectedRepo) return;
+    
+    // Handle email-report differently to avoid state clearing
+    if (action === 'email-report') {
+      setEmailSubject(`📊 Repository Report: ${selectedRepo.name} - ${new Date().toLocaleDateString()}`);
+      setShowEmailModal(true);
+      setShowAIModal(false);
+      return;
+    }
     
     setAiActionLoading(action);
     
@@ -144,15 +215,14 @@ export default function RepositoriesPage() {
           
         case 'analyze':
           // Trigger full analysis
-          const analysisResponse = await fetch('/api/repositories', {
+          const analysisResponse = await fetch('/api/repositories/analyze', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               repositoryId: selectedRepo.id,
-              analysisType: 'full',
-              userId: '550e8400-e29b-41d4-a716-446655440000'
+              force_refresh: true
             }),
           });
 
@@ -160,11 +230,16 @@ export default function RepositoriesPage() {
           if (analysisData.success) {
             // Refresh repositories to show updated analysis
             loadRepositories();
-            console.log('Analysis completed:', analysisData.message);
+            console.log('✅ Full AI analysis completed successfully!');
+            console.log('Analysis results:', analysisData.data);
+            alert(`Analysis completed! Execution time: ${analysisData.execution_time}ms`);
           } else {
             console.error('Analysis failed:', analysisData.error);
+            alert(`Analysis failed: ${analysisData.error || 'Unknown error'}`);
           }
           break;
+
+        // email-report case is now handled before the switch statement
       }
     } catch (error) {
       console.error('Error performing AI action:', error);
@@ -574,6 +649,135 @@ export default function RepositoriesPage() {
                     </div>
                     {aiActionLoading === 'analyze' && (
                       <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => handleAIAction('email-report')}
+                    disabled={aiActionLoading !== null}
+                    className="w-full p-4 glass-card rounded-xl hover:scale-[1.02] transition-all duration-200 flex items-center gap-4 text-left"
+                  >
+                    <div className="p-2 bg-gradient-to-r from-teal-500 to-blue-500 rounded-lg">
+                      <Mail className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium">Email Report</h3>
+                      <p className="text-gray-400 text-sm">Generate & send comprehensive metrics</p>
+                    </div>
+                    {aiActionLoading === 'email-report' && (
+                      <Loader2 className="w-4 h-4 text-teal-400 animate-spin" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Email Configuration Modal */}
+      <AnimatePresence>
+        {showEmailModal && selectedRepo && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              onClick={() => setShowEmailModal(false)}
+            />
+            
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="glass-strong backdrop-blur-2xl rounded-2xl border border-white/20 w-full max-w-lg p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">📧 Email Report Settings</h2>
+                    <p className="text-gray-400 text-sm">{selectedRepo.name}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowEmailModal(false);
+                      setSelectedRepo(null);
+                    }}
+                    className="p-2 glass-subtle rounded-lg hover:bg-white/10 transition-colors"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Email Subject
+                    </label>
+                    <input
+                      type="text"
+                      value={emailSubject}
+                      onChange={(e) => setEmailSubject(e.target.value)}
+                      className="w-full glass-subtle rounded-lg px-4 py-3 text-white placeholder-gray-400"
+                      placeholder="Enter email subject..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Recipient Email
+                    </label>
+                    <input
+                      type="email"
+                      value={emailRecipient}
+                      onChange={(e) => setEmailRecipient(e.target.value)}
+                      className="w-full glass-subtle rounded-lg px-4 py-3 text-white placeholder-gray-400"
+                      placeholder="recipient@example.com"
+                    />
+                  </div>
+
+                  <div className="glass-subtle p-4 rounded-lg border-l-4 border-blue-500/50">
+                    <h4 className="text-sm font-medium text-white mb-2">📊 Report Will Include:</h4>
+                    <ul className="text-xs text-gray-400 space-y-1">
+                      <li>• Repository metrics & complexity analysis</li>
+                      <li>• Code quality & security scores</li>
+                      <li>• Language breakdown & technology stack</li>
+                      <li>• Team collaboration statistics</li>
+                      <li>• Executive summary & recommendations</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowEmailModal(false);
+                      setSelectedRepo(null);
+                    }}
+                    className="flex-1 px-4 py-3 glass-subtle rounded-lg text-gray-300 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={sendEmailReport}
+                    disabled={!emailRecipient || !emailSubject || aiActionLoading === 'email-report'}
+                    className={`flex-1 px-4 py-3 glass-card rounded-lg font-medium text-white transition-all flex items-center justify-center gap-2 ${
+                      aiActionLoading === 'email-report' ? 'opacity-50' : 'hover:scale-[1.02]'
+                    }`}
+                  >
+                    {aiActionLoading === 'email-report' ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Send Report
+                      </>
                     )}
                   </button>
                 </div>

@@ -306,6 +306,175 @@ export class DatabaseService {
     return { error };
   }
 
+  // Email Settings methods
+  async getEmailSettings(userId: string) {
+    const { data, error } = await this.client
+      .from('email_settings')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    return { data, error };
+  }
+
+  async createEmailSettings(emailSettings: any) {
+    const { data, error } = await this.client
+      .from('email_settings')
+      .insert(emailSettings)
+      .select()
+      .single();
+    
+    return { data, error };
+  }
+
+  async updateEmailSettings(userId: string, updates: any) {
+    const { data, error } = await this.client
+      .from('email_settings')
+      .update(updates)
+      .eq('user_id', userId)
+      .select()
+      .single();
+    
+    return { data, error };
+  }
+
+  // Email Templates methods
+  async getEmailTemplates(userId: string, type?: string) {
+    let query = this.client
+      .from('email_templates')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (type) {
+      query = query.eq('type', type);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    return { data, error };
+  }
+
+  async getEmailTemplate(id: string) {
+    const { data, error } = await this.client
+      .from('email_templates')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    return { data, error };
+  }
+
+  async createEmailTemplate(template: any) {
+    const { data, error } = await this.client
+      .from('email_templates')
+      .insert(template)
+      .select()
+      .single();
+    
+    return { data, error };
+  }
+
+  // Repository Reports methods
+  async getRepositoryReports(userId: string, repositoryId?: string) {
+    let query = this.client
+      .from('repository_reports')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (repositoryId) {
+      query = query.eq('repository_id', repositoryId);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    return { data, error };
+  }
+
+  async getRepositoryReport(id: string) {
+    const { data, error } = await this.client
+      .from('repository_reports')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    return { data, error };
+  }
+
+  async createRepositoryReport(report: any) {
+    const { data, error } = await this.client
+      .from('repository_reports')
+      .insert(report)
+      .select()
+      .single();
+    
+    return { data, error };
+  }
+
+  async updateRepositoryReport(id: string, updates: any) {
+    const { data, error } = await this.client
+      .from('repository_reports')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    return { data, error };
+  }
+
+  async deleteRepositoryReport(id: string) {
+    const { error } = await this.client
+      .from('repository_reports')
+      .delete()
+      .eq('id', id);
+    
+    return { error };
+  }
+
+  // Email Queue methods
+  async addToEmailQueue(queueItem: any) {
+    const { data, error } = await this.client
+      .from('email_queue')
+      .insert(queueItem)
+      .select()
+      .single();
+    
+    return { data, error };
+  }
+
+  async getEmailQueue(userId: string, status?: string) {
+    let query = this.client
+      .from('email_queue')
+      .select('*')
+      .eq('user_id', userId);
+    
+    if (status) {
+      query = query.eq('status', status);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    return { data, error };
+  }
+
+  async updateEmailQueueStatus(id: string, status: string, errorMessage?: string) {
+    const updateData: any = { 
+      status,
+      updated_at: new Date().toISOString()
+    };
+    
+    if (status === 'sent') {
+      updateData.sent_at = new Date().toISOString();
+    }
+    
+    if (errorMessage) {
+      updateData.error_message = errorMessage;
+    }
+    
+    const { error } = await this.client
+      .from('email_queue')
+      .update(updateData)
+      .eq('id', id);
+    
+    return { error };
+  }
+
   // Utility methods
   async clearExpiredCache() {
     const { error } = await this.client

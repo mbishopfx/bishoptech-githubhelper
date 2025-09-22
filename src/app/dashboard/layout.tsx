@@ -13,7 +13,6 @@ import {
   Home,
   Plus,
   Search,
-  Bell,
   User,
   Menu,
   X,
@@ -36,7 +35,6 @@ interface NavigationItem {
   name: string;
   href: string;
   icon: any;
-  badge?: number;
   submenu?: NavigationItem[];
 }
 
@@ -87,13 +85,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       name: 'Chat',
       href: '/dashboard/chat',
       icon: MessageCircle,
-      badge: 2, // Unread conversations
     },
     {
       name: 'Todo Lists',
       href: '/dashboard/todos',
       icon: ListTodo,
-      badge: 5, // Active todos
       submenu: [
         {
           name: 'All Lists',
@@ -233,12 +229,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
 
                 <div className={`flex items-center gap-2 ${!sidebarOpen && 'hidden'}`}>
-                  {item.badge && (
-                    <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                  
                   {item.submenu && (
                     <button
                       onClick={(e) => {
@@ -405,21 +395,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <button className="relative p-2 glass-subtle rounded-lg hover:bg-white/10 transition-colors">
-                    <Bell className="w-5 h-5 text-gray-400" />
-                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                  </button>
-                  
-                  <motion.button
-                    className="glass-card px-4 py-2 rounded-lg font-medium text-white interactive flex items-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:block">New</span>
-                  </motion.button>
-                </div>
               </div>
             </div>
           </div>

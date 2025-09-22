@@ -500,6 +500,67 @@ export class GitHubService {
   }
 }
 
+// Helper function for backward compatibility and easier usage
+export const getGitHubData = async (repoFullName: string) => {
+  const service = new GitHubService();
+  const [owner, repo] = repoFullName.split('/');
+
+  return {
+    async getRepository() {
+      const response = await service.getRepositoryDetails(owner, repo);
+      return response.repository;
+    },
+
+    async getCommits(options: { since?: string; until?: string } = {}) {
+      const result = await service.analyzeCommits(owner, repo, options.since, options.until);
+      return result.commits;
+    },
+
+    async getCommit(sha: string) {
+      // Use the octokit instance from the service
+      const octokit = new (require('@octokit/rest').Octokit)({
+        auth: process.env.GITHUB_TOKEN,
+      });
+      const { data } = await octokit.rest.repos.getCommit({
+        owner,
+        repo,
+        ref: sha,
+      });
+      return data;
+    },
+
+    async getLanguages() {
+      const details = await service.getRepositoryDetails(owner, repo);
+      return details.languages;
+    },
+
+    async getContributors() {
+      const details = await service.getRepositoryDetails(owner, repo);
+      return details.contributors;
+    },
+
+    async getIssues(options: { state?: 'open' | 'closed' | 'all'; since?: string } = {}) {
+      return await service.getIssues(owner, repo, options.state);
+    },
+
+    async getPullRequests(options: { state?: 'open' | 'closed' | 'all' } = {}) {
+      return await service.getPullRequests(owner, repo, options.state);
+    },
+
+    async getBranches() {
+      // Use the octokit instance to get branches
+      const octokit = new (require('@octokit/rest').Octokit)({
+        auth: process.env.GITHUB_TOKEN,
+      });
+      const { data } = await octokit.rest.repos.listBranches({
+        owner,
+        repo,
+      });
+      return data;
+    },
+  };
+};
+
 // Export singleton instance
 export const githubService = new GitHubService();
 

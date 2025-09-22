@@ -22,7 +22,15 @@ import {
   Save,
   RefreshCw,
   FileText,
-  Bot
+  Bot,
+  Mail,
+  Send,
+  TestTube,
+  Clock,
+  Calendar,
+  Sparkles,
+  Database,
+  Lock
 } from 'lucide-react';
 
 interface SlackConfig {
@@ -43,6 +51,38 @@ interface SlackConfig {
     directMessages: boolean;
   };
   scopes: string[];
+}
+
+interface EmailConfig {
+  smtp: {
+    host: string;
+    port: number;
+    secure: boolean;
+    auth: {
+      user: string;
+      pass: string;
+    };
+  };
+  sender: {
+    name: string;
+    email: string;
+  };
+  templates: {
+    repositoryReport: {
+      enabled: boolean;
+      schedule: 'daily' | 'weekly' | 'monthly';
+      recipients: string[];
+    };
+    alerts: {
+      enabled: boolean;
+      types: string[];
+    };
+  };
+  branding: {
+    logoUrl: string;
+    companyName: string;
+    primaryColor: string;
+  };
 }
 
 interface ManifestData {
@@ -89,6 +129,10 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState<string>('');
   const [isGeneratingManifest, setIsGeneratingManifest] = useState(false);
   const [manifestData, setManifestData] = useState<ManifestData | null>(null);
+  const [isTestingEmail, setIsTestingEmail] = useState(false);
+  const [emailTestResult, setEmailTestResult] = useState<{success: boolean, message: string} | null>(null);
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [emailSaveResult, setEmailSaveResult] = useState<{success: boolean, message: string} | null>(null);
 
   const [slackConfig, setSlackConfig] = useState<SlackConfig>({
     botName: 'GitHub Helper Bot',
@@ -109,6 +153,38 @@ export default function SettingsPage() {
       'users:read',
       'app_mentions:read'
     ],
+  });
+
+  const [emailConfig, setEmailConfig] = useState<EmailConfig>({
+    smtp: {
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'bishop@truerankdigital.com',
+        pass: 'mhxy xjoa jrlx uacr'
+      }
+    },
+    sender: {
+      name: 'GitHub Helper',
+      email: 'bishop@truerankdigital.com'
+    },
+    templates: {
+      repositoryReport: {
+        enabled: true,
+        schedule: 'weekly',
+        recipients: ['bishop@truerankdigital.com']
+      },
+      alerts: {
+        enabled: true,
+        types: ['critical-issues', 'deploy-failures', 'security-alerts']
+      }
+    },
+    branding: {
+      logoUrl: '/whitelogo.png',
+      companyName: 'GitHub Helper',
+      primaryColor: '#3b82f6'
+    }
   });
 
   const [webhookUrl, setWebhookUrl] = useState<string>('https://your-domain.vercel.app/api/slack/events');
@@ -230,11 +306,58 @@ export default function SettingsPage() {
     console.log('Saving settings:', slackConfig);
   };
 
+  const testEmailConnection = async () => {
+    try {
+      setIsTestingEmail(true);
+      // TODO: Implement email testing API call
+      const response = await fetch('/api/settings/email/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailConfig.smtp)
+      });
+      
+      if (response.ok) {
+        setEmailTestResult({ success: true, message: 'Email connection successful!' });
+      } else {
+        setEmailTestResult({ success: false, message: 'Email connection failed' });
+      }
+    } catch (error) {
+      setEmailTestResult({ success: false, message: 'Connection test failed' });
+    } finally {
+      setIsTestingEmail(false);
+      setTimeout(() => setEmailTestResult(null), 5000);
+    }
+  };
+
+  const saveEmailSettings = async () => {
+    try {
+      setIsSavingEmail(true);
+      // TODO: Implement email settings save API
+      const response = await fetch('/api/settings/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailConfig)
+      });
+      
+      if (response.ok) {
+        setEmailSaveResult({ success: true, message: 'Email settings saved successfully!' });
+      } else {
+        setEmailSaveResult({ success: false, message: 'Failed to save email settings' });
+      }
+    } catch (error) {
+      setEmailSaveResult({ success: false, message: 'Save operation failed' });
+    } finally {
+      setIsSavingEmail(false);
+      setTimeout(() => setEmailSaveResult(null), 5000);
+    }
+  };
+
   const tabs = [
     { id: 'slack', name: 'Slack Bot', icon: Slack },
     { id: 'github', name: 'GitHub', icon: Github },
+    { id: 'email', name: 'Email Reports', icon: Mail },
+    { id: 'api', name: 'API Keys', icon: Key },
     { id: 'security', name: 'Security', icon: Shield },
-    { id: 'webhooks', name: 'Webhooks', icon: Webhook },
   ];
 
   return (
@@ -538,6 +661,458 @@ export default function SettingsPage() {
               </div>
             )}
 
+            {activeTab === 'email' && (
+              <div className="space-y-6">
+                {/* SMTP Configuration */}
+                <div className="glass-card p-6 rounded-2xl">
+                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-blue-400" />
+                    SMTP Configuration
+                  </h2>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        SMTP Host
+                      </label>
+                      <input
+                        type="text"
+                        value={emailConfig.smtp.host}
+                        onChange={(e) => setEmailConfig(prev => ({
+                          ...prev,
+                          smtp: { ...prev.smtp, host: e.target.value }
+                        }))}
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="smtp.gmail.com"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Port
+                      </label>
+                      <input
+                        type="number"
+                        value={emailConfig.smtp.port}
+                        onChange={(e) => setEmailConfig(prev => ({
+                          ...prev,
+                          smtp: { ...prev.smtp, port: parseInt(e.target.value) }
+                        }))}
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="587"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={emailConfig.smtp.auth.user}
+                        onChange={(e) => setEmailConfig(prev => ({
+                          ...prev,
+                          smtp: { 
+                            ...prev.smtp, 
+                            auth: { ...prev.smtp.auth, user: e.target.value }
+                          }
+                        }))}
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="your-email@gmail.com"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        App Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showSecrets.emailPassword ? 'text' : 'password'}
+                          value={emailConfig.smtp.auth.pass}
+                          onChange={(e) => setEmailConfig(prev => ({
+                            ...prev,
+                            smtp: { 
+                              ...prev.smtp, 
+                              auth: { ...prev.smtp.auth, pass: e.target.value }
+                            }
+                          }))}
+                          className="w-full glass-subtle rounded-lg px-4 py-3 pr-10 text-white"
+                          placeholder="App Password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleSecret('emailPassword')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                        >
+                          {showSecrets.emailPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={emailConfig.smtp.secure}
+                          onChange={(e) => setEmailConfig(prev => ({
+                            ...prev,
+                            smtp: { ...prev.smtp, secure: e.target.checked }
+                          }))}
+                          className="w-4 h-4 text-blue-500 bg-transparent border-gray-400 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-gray-300">Use SSL/TLS (recommended for port 465)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Test Connection */}
+                  <div className="mt-6 pt-4 border-t border-white/10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-white mb-1">Test Connection</h3>
+                        <p className="text-xs text-gray-400">Verify your SMTP settings are correct</p>
+                      </div>
+                      <motion.button
+                        onClick={testEmailConnection}
+                        disabled={isTestingEmail}
+                        className="glass-card px-4 py-2 rounded-lg font-medium text-white interactive flex items-center gap-2"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {isTestingEmail ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <TestTube className="w-4 h-4" />
+                        )}
+                        {isTestingEmail ? 'Testing...' : 'Test Connection'}
+                      </motion.button>
+                    </div>
+                    
+                    {emailTestResult && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`mt-3 p-3 rounded-lg ${
+                          emailTestResult.success 
+                            ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                            : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {emailTestResult.success ? (
+                            <Check className="w-4 h-4" />
+                          ) : (
+                            <AlertTriangle className="w-4 h-4" />
+                          )}
+                          <span className="text-sm">{emailTestResult.message}</span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sender Information */}
+                <div className="glass-card p-6 rounded-2xl">
+                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <Send className="w-5 h-5 text-green-400" />
+                    Sender Information
+                  </h2>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Sender Name
+                      </label>
+                      <input
+                        type="text"
+                        value={emailConfig.sender.name}
+                        onChange={(e) => setEmailConfig(prev => ({
+                          ...prev,
+                          sender: { ...prev.sender, name: e.target.value }
+                        }))}
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="GitHub Helper"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Sender Email
+                      </label>
+                      <input
+                        type="email"
+                        value={emailConfig.sender.email}
+                        onChange={(e) => setEmailConfig(prev => ({
+                          ...prev,
+                          sender: { ...prev.sender, email: e.target.value }
+                        }))}
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="noreply@yourdomain.com"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Report Templates */}
+                <div className="glass-card p-6 rounded-2xl">
+                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-purple-400" />
+                    Email Templates
+                  </h2>
+                  
+                  {/* Repository Reports */}
+                  <div className="space-y-4">
+                    <div className="glass-subtle p-4 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-medium text-white">Repository Reports</h3>
+                          <p className="text-sm text-gray-400">Automated reports about repository activity</p>
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={emailConfig.templates.repositoryReport.enabled}
+                            onChange={(e) => setEmailConfig(prev => ({
+                              ...prev,
+                              templates: {
+                                ...prev.templates,
+                                repositoryReport: { 
+                                  ...prev.templates.repositoryReport, 
+                                  enabled: e.target.checked 
+                                }
+                              }
+                            }))}
+                            className="w-4 h-4 text-blue-500 bg-transparent border-gray-400 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-300">Enabled</span>
+                        </label>
+                      </div>
+                      
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Schedule
+                          </label>
+                          <select
+                            value={emailConfig.templates.repositoryReport.schedule}
+                            onChange={(e) => setEmailConfig(prev => ({
+                              ...prev,
+                              templates: {
+                                ...prev.templates,
+                                repositoryReport: { 
+                                  ...prev.templates.repositoryReport, 
+                                  schedule: e.target.value as 'daily' | 'weekly' | 'monthly'
+                                }
+                              }
+                            }))}
+                            className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                          >
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Recipients
+                          </label>
+                          <input
+                            type="email"
+                            value={emailConfig.templates.repositoryReport.recipients.join(', ')}
+                            onChange={(e) => setEmailConfig(prev => ({
+                              ...prev,
+                              templates: {
+                                ...prev.templates,
+                                repositoryReport: { 
+                                  ...prev.templates.repositoryReport, 
+                                  recipients: e.target.value.split(',').map(email => email.trim())
+                                }
+                              }
+                            }))}
+                            className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                            placeholder="email1@domain.com, email2@domain.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Alert Templates */}
+                    <div className="glass-subtle p-4 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-medium text-white">Alert Notifications</h3>
+                          <p className="text-sm text-gray-400">Real-time alerts for important events</p>
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={emailConfig.templates.alerts.enabled}
+                            onChange={(e) => setEmailConfig(prev => ({
+                              ...prev,
+                              templates: {
+                                ...prev.templates,
+                                alerts: { 
+                                  ...prev.templates.alerts, 
+                                  enabled: e.target.checked 
+                                }
+                              }
+                            }))}
+                            className="w-4 h-4 text-blue-500 bg-transparent border-gray-400 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-300">Enabled</span>
+                        </label>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Alert Types
+                        </label>
+                        {[
+                          { key: 'critical-issues', label: 'Critical Issues' },
+                          { key: 'deploy-failures', label: 'Deployment Failures' },
+                          { key: 'security-alerts', label: 'Security Alerts' },
+                          { key: 'performance-degradation', label: 'Performance Issues' }
+                        ].map(({ key, label }) => (
+                          <label key={key} className="flex items-center gap-3 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={emailConfig.templates.alerts.types.includes(key)}
+                              onChange={(e) => {
+                                const types = e.target.checked
+                                  ? [...emailConfig.templates.alerts.types, key]
+                                  : emailConfig.templates.alerts.types.filter(t => t !== key);
+                                setEmailConfig(prev => ({
+                                  ...prev,
+                                  templates: {
+                                    ...prev.templates,
+                                    alerts: { ...prev.templates.alerts, types }
+                                  }
+                                }));
+                              }}
+                              className="w-4 h-4 text-blue-500 bg-transparent border-gray-400 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-gray-300">{label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Branding */}
+                <div className="glass-card p-6 rounded-2xl">
+                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-yellow-400" />
+                    Email Branding
+                  </h2>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Company Name
+                      </label>
+                      <input
+                        type="text"
+                        value={emailConfig.branding.companyName}
+                        onChange={(e) => setEmailConfig(prev => ({
+                          ...prev,
+                          branding: { ...prev.branding, companyName: e.target.value }
+                        }))}
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="Your Company Name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Primary Color
+                      </label>
+                      <input
+                        type="color"
+                        value={emailConfig.branding.primaryColor}
+                        onChange={(e) => setEmailConfig(prev => ({
+                          ...prev,
+                          branding: { ...prev.branding, primaryColor: e.target.value }
+                        }))}
+                        className="w-full h-12 glass-subtle rounded-lg border-0 cursor-pointer"
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Logo URL
+                      </label>
+                      <div className="flex gap-3">
+                        <input
+                          type="text"
+                          value={emailConfig.branding.logoUrl}
+                          onChange={(e) => setEmailConfig(prev => ({
+                            ...prev,
+                            branding: { ...prev.branding, logoUrl: e.target.value }
+                          }))}
+                          className="flex-1 glass-subtle rounded-lg px-4 py-3 text-white"
+                          placeholder="/logo.png or https://..."
+                        />
+                        {emailConfig.branding.logoUrl && (
+                          <div className="w-12 h-12 glass-subtle rounded-lg flex items-center justify-center">
+                            <img 
+                              src={emailConfig.branding.logoUrl} 
+                              alt="Logo preview" 
+                              className="max-w-full max-h-full object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="flex justify-between items-center">
+                  {emailSaveResult && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`p-3 rounded-lg ${
+                        emailSaveResult.success 
+                          ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                          : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {emailSaveResult.success ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <AlertTriangle className="w-4 h-4" />
+                        )}
+                        <span className="text-sm">{emailSaveResult.message}</span>
+                      </div>
+                    </motion.div>
+                  )}
+                  
+                  <motion.button
+                    onClick={saveEmailSettings}
+                    disabled={isSavingEmail}
+                    className="glass-card px-6 py-3 rounded-lg font-semibold text-white interactive flex items-center gap-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {isSavingEmail ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    {isSavingEmail ? 'Saving...' : 'Save Email Settings'}
+                  </motion.button>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'github' && (
               <div className="glass-card p-6 rounded-2xl">
                 <h2 className="text-xl font-semibold text-white mb-4">GitHub Integration</h2>
@@ -545,17 +1120,152 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {activeTab === 'security' && (
-              <div className="glass-card p-6 rounded-2xl">
-                <h2 className="text-xl font-semibold text-white mb-4">Security Settings</h2>
-                <p className="text-gray-400">Security and authentication settings will go here.</p>
+            {activeTab === 'api' && (
+              <div className="space-y-6">
+                {/* OpenAI API Keys */}
+                <div className="glass-card p-6 rounded-2xl">
+                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <Key className="w-5 h-5 text-blue-400" />
+                    OpenAI API Configuration
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        OpenAI API Key
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showSecrets.openaiKey ? 'text' : 'password'}
+                          className="w-full glass-subtle rounded-lg px-4 py-3 pr-10 text-white"
+                          placeholder="sk-..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleSecret('openaiKey')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                        >
+                          {showSecrets.openaiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Organization ID (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="org-..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* GitHub API Keys */}
+                <div className="glass-card p-6 rounded-2xl">
+                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <Github className="w-5 h-5 text-gray-400" />
+                    GitHub API Configuration
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Personal Access Token
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showSecrets.githubToken ? 'text' : 'password'}
+                          className="w-full glass-subtle rounded-lg px-4 py-3 pr-10 text-white"
+                          placeholder="ghp_..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleSecret('githubToken')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                        >
+                          {showSecrets.githubToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        GitHub Username
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="your-username"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Database Configuration */}
+                <div className="glass-card p-6 rounded-2xl">
+                  <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                    <Database className="w-5 h-5 text-green-400" />
+                    Database Configuration
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Supabase URL
+                      </label>
+                      <input
+                        type="url"
+                        className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
+                        placeholder="https://your-project.supabase.co"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Service Role Key
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showSecrets.supabaseKey ? 'text' : 'password'}
+                          className="w-full glass-subtle rounded-lg px-4 py-3 pr-10 text-white"
+                          placeholder="eyJ..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => toggleSecret('supabaseKey')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                        >
+                          {showSecrets.supabaseKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="flex justify-end">
+                  <motion.button
+                    className="glass-card px-6 py-3 rounded-lg font-semibold text-white interactive flex items-center gap-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Save className="w-4 h-4" />
+                    Save API Keys
+                  </motion.button>
+                </div>
               </div>
             )}
 
-            {activeTab === 'webhooks' && (
+            {activeTab === 'security' && (
               <div className="glass-card p-6 rounded-2xl">
-                <h2 className="text-xl font-semibold text-white mb-4">Webhook Management</h2>
-                <p className="text-gray-400">Webhook configuration and monitoring will go here.</p>
+                <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-red-400" />
+                  Security Settings
+                </h2>
+                <p className="text-gray-400">Security and authentication settings will go here.</p>
               </div>
             )}
           </motion.div>

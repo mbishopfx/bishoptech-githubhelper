@@ -1,0 +1,230 @@
+# GitHub Helper - AI Project Management System
+# Cursor AI Assistant Rules and Context
+
+## Project Overview
+GitHub Helper is a Next.js 15 application providing AI-powered project management and repository analysis. This is a single-user personal system designed for individual developers and small teams.
+
+### Core Purpose
+- Personal AI-powered project management
+- GitHub repository integration and analysis  
+- Automated task generation and project recaps
+- Cursor IDE integration for development workflows
+- Professional API server for external integrations
+
+## Technical Architecture
+
+### Stack Components
+- **Framework**: Next.js 15 with TypeScript
+- **AI/ML**: OpenAI GPT-4o, LangChain, LangGraph
+- **Database**: Supabase (PostgreSQL with RLS)
+- **Styling**: Tailwind CSS v3.3.0, Framer Motion
+- **APIs**: GitHub API (Octokit), RESTful endpoints
+- **Authentication**: Single-user system with API keys
+- **Deployment**: Vercel with environment-based config
+
+### System Design Patterns
+- Single-user authentication (no multi-tenant complexity)
+- API-first architecture with comprehensive endpoints
+- Real-time streaming AI responses
+- Repository-aware AI context and analysis
+- Glassmorphic dark theme UI design
+- Environment variable configuration management
+
+## Development Guidelines
+
+### Code Standards
+- Use TypeScript for all new code with strict typing
+- Prefer server components over client components when possible
+- Use Tailwind CSS with custom glassmorphic utility classes
+- Implement comprehensive error handling with try-catch blocks
+- Use environment variables for all configuration values
+- Follow Next.js 15 best practices and app router patterns
+
+### File Organization
+/src/
+  /app/
+    /api/v1/          # Public API endpoints (versioned)
+    /dashboard/       # UI components and pages
+  /lib/
+    /agents/          # AI agent implementations
+    /single-user.ts   # Single user configuration
+    /api-auth.ts      # API authentication helpers
+/database/            # SQL schemas and migrations
+/docs/               # Project documentation
+/public/             # Static assets including llm.txt
+
+### Database Patterns
+- Use Supabase client with proper error handling
+- Single user ID: 550e8400-e29b-41d4-a716-446655440000
+- Implement Row Level Security (RLS) policies
+- Use typed database queries with TypeScript interfaces
+- Handle database errors gracefully with user-friendly messages
+
+### API Design Standards
+- Use /api/v1/ prefix for all public API endpoints
+- Implement RESTful design with proper HTTP methods
+- Return consistent response format with success/error handling
+- Include proper rate limiting and authentication headers
+- Support CORS for cross-origin requests
+
+### UI/UX Patterns
+- Maintain glassmorphic dark theme consistency
+- Use Framer Motion for smooth animations and transitions
+- Implement proper loading states for AI operations
+- Provide real-time feedback for streaming responses
+- Ensure responsive design for all screen sizes
+
+## Single-User System Context
+
+### Authentication Model
+- Hardcoded user ID for simplicity
+- No user registration/login flows required
+- API keys supported for external integrations
+- Environment variables for user personalization:
+  - SINGLE_USER_EMAIL
+  - SINGLE_USER_GITHUB_USERNAME 
+  - SINGLE_USER_NAME
+
+### Simplified Patterns
+- No userId parameters needed in API calls
+- Direct database queries using fixed user ID
+- Streamlined error handling without user context switching
+- Personal branding and configuration options
+
+## AI Integration Guidelines
+
+### Context Awareness
+When providing AI assistance, remember:
+- This is a personal productivity system, not enterprise software
+- All repositories belong to the same user (mbishopfx/BishopTech)
+- System branding is "GitHub Helper" with "AI Assistant" tagline
+- Focus on individual developer productivity and workflow
+- Maintain professional yet personal user experience
+
+### AI Implementation Patterns
+- Stream responses for better user experience
+- Provide comprehensive repository context to AI models
+- Use GitHub API integration for real-time repository data
+- Implement proper rate limiting for OpenAI API calls
+- Include fallback handling for AI service failures
+
+## Commit Message Standards
+
+### Format Requirements
+Use this structure for all commits:
+{emoji} {Action} {Brief Description}
+
+{Detailed Changes}:
+- Category: Specific changes made
+- Category: Specific changes made
+
+{Impact/Benefits}:
+- Benefit 1: User/technical improvement
+- Benefit 2: Performance/functionality gain
+
+{Current State}:
+Brief summary of what's now ready/working
+
+### Required Emojis
+- 🚀 Deployments, releases, major launches
+- ✨ New features, functionality additions
+- 🔧 Configuration, setup, environment changes
+- 🐛 Bug fixes, error corrections
+- ⚡ Performance optimizations
+- 🎨 UI/UX changes, styling updates
+- 🔗 API changes, integrations, webhooks
+- 📚 Documentation, README updates
+- 🔒 Security, authentication changes
+
+### Context Requirements
+Always include:
+- Specific files modified
+- Technical implementation details
+- Business rationale for changes
+- Impact on user experience
+- Dependencies or prerequisites
+- Testing approach used
+
+## Environment Configuration
+
+### Required Variables
+# Core Services
+OPENAI_API_KEY=sk-...
+NEXT_PUBLIC_SUPABASE_URL=https://...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+GITHUB_TOKEN=github_pat_...
+
+# Single User Config
+SINGLE_USER_EMAIL=your-email@domain.com
+SINGLE_USER_GITHUB_USERNAME=your-github-username
+SINGLE_USER_NAME=Your Display Name
+
+# Security
+NEXTAUTH_SECRET=random-32-char-string
+MASTER_API_KEY=gha_generated_api_key
+
+### Development Environment
+- Always run `cd github-agent-dashboard` before npm commands
+- Use `npm run dev` for local development
+- Database setup via `database/quick-setup.sql`
+- API testing via `/api/v1/status` endpoint
+
+## Common Patterns and Solutions
+
+### Database Operations
+// Always use single user pattern
+import { getSingleUserId } from '@/lib/single-user';
+const userId = getSingleUserId();
+
+// Query with error handling
+const { data, error } = await supabase
+  .from('table_name')
+  .select('*')
+  .eq('user_id', userId);
+
+### API Endpoints
+// Use withApiAuth for public APIs
+import { withApiAuth } from '@/lib/api-auth';
+export const GET = withApiAuth(async (request, context, auth) => {
+  // Implementation with automatic auth
+});
+
+### AI Streaming
+// Implement streaming responses
+const stream = await llm.stream(messages);
+for await (const chunk of stream) {
+  // Process streaming response
+}
+
+## Troubleshooting Guidelines
+
+### Common Issues
+- **Auth failures**: Check single-user configuration and environment variables
+- **API errors**: Verify rate limits and API key permissions  
+- **Database issues**: Confirm RLS policies and user ID consistency
+- **AI failures**: Check OpenAI API limits and error handling
+- **Build failures**: Ensure TypeScript types and ESLint compliance
+
+### Performance Monitoring
+- Monitor API response times and error rates
+- Track AI token usage and associated costs
+- Watch Vercel deployment metrics and logs
+- Monitor Supabase database performance
+- Check for rate limiting issues across services
+
+## Integration Points
+
+### Cursor IDE Integration
+- API endpoints available at `/api/v1/`
+- Documentation available at `/dashboard/api-docs`
+- LLM integration guide at `/public/llm.txt`
+- Support for automatic task creation and project analysis
+
+### External APIs
+- GitHub API for repository data and analysis
+- OpenAI API for AI-powered features
+- Supabase for database and authentication
+- Vercel for deployment and hosting
+
+This context should enable comprehensive AI assistance for development, debugging, and feature enhancement.

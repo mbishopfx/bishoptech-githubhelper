@@ -248,7 +248,8 @@ export type AgentType =
   | 'recap_generator' 
   | 'chat_assistant'
   | 'tech_stack_analyzer'
-  | 'meeting_prep';
+  | 'meeting_prep'
+  | 'todo_generator';
 
 export interface AgentStep {
   id: string;
@@ -413,4 +414,115 @@ export interface RecapCardProps {
   onEdit: (recap: Recap) => void;
   onDelete: (recapId: string) => void;
   onExport: (recap: Recap) => void;
+}
+
+// Email Settings and Reporting
+export interface EmailSettings {
+  id: string;
+  user_id: string;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_secure: boolean;
+  smtp_user: string;
+  smtp_password: string;
+  sender_name: string;
+  sender_email: string;
+  logo_url: string;
+  company_name: string;
+  primary_color: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmailTemplate {
+  id: string;
+  user_id: string;
+  name: string;
+  type: 'repository_report' | 'alert' | 'notification';
+  subject: string;
+  html_content: string;
+  text_content?: string;
+  variables: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RepositoryReport {
+  id: string;
+  user_id: string;
+  repository_id: string;
+  title: string;
+  summary: string;
+  commit_summary: CommitSummary[];
+  issue_summary: IssueSummary[];
+  pull_request_summary: PullRequestSummary[];
+  performance_metrics: ReportMetrics;
+  recommendations: string[];
+  period_start: string;
+  period_end: string;
+  generated_at: string;
+  email_sent: boolean;
+  email_sent_at?: string;
+  recipients: string[];
+}
+
+export interface CommitSummary {
+  author: string;
+  commit_count: number;
+  lines_added: number;
+  lines_removed: number;
+  files_changed: number;
+  most_active_files: string[];
+}
+
+export interface IssueSummary {
+  total_issues: number;
+  open_issues: number;
+  closed_issues: number;
+  critical_issues: number;
+  avg_resolution_time: number;
+  top_labels: string[];
+}
+
+export interface PullRequestSummary {
+  total_prs: number;
+  open_prs: number;
+  merged_prs: number;
+  draft_prs: number;
+  avg_review_time: number;
+  top_contributors: string[];
+}
+
+export interface ReportMetrics {
+  build_success_rate: number;
+  test_coverage: number;
+  code_quality_score: number;
+  security_score: number;
+  performance_score: number;
+  dependencies_outdated: number;
+}
+
+export interface EmailSchedule {
+  id: string;
+  user_id: string;
+  repository_id?: string;
+  template_id: string;
+  schedule_type: 'daily' | 'weekly' | 'monthly' | 'on_event';
+  schedule_config: ScheduleConfig;
+  recipients: string[];
+  is_active: boolean;
+  last_sent_at?: string;
+  next_scheduled_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScheduleConfig {
+  day_of_week?: number;
+  day_of_month?: number;
+  hour: number;
+  minute: number;
+  timezone: string;
+  events?: string[];
 }

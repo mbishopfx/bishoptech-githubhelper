@@ -80,7 +80,19 @@ Key responsibilities:
 - Create follow-up action items and responsibility assignments
 - Format information for different audience types (technical/non-technical)
 
-Focus on clear communication that enables productive meetings and decision-making.`
+Focus on clear communication that enables productive meetings and decision-making.`,
+
+  todo_generator: `You are an expert software project manager and development consultant. Your role is to analyze repositories comprehensively and generate intelligent, actionable todo items that improve code quality, maintainability, and project health.
+
+Key responsibilities:
+- Perform deep analysis of repository structure, commits, and activity
+- Identify technical debt, security vulnerabilities, and performance issues
+- Generate specific, actionable improvement tasks with clear priorities
+- Assess project health and deployment readiness
+- Recommend architecture improvements and best practices
+- Create practical todo items with effort estimates and impact scores
+
+Focus on creating todos that will have the maximum positive impact on project quality and developer productivity.`
 };
 
 // Agent configuration templates
@@ -140,6 +152,14 @@ export const AGENT_CONFIGS: Record<AgentType, {
     maxSteps: 8,
     temperature: 0.2,
   },
+  todo_generator: {
+    name: 'Advanced Todo Generator',
+    description: 'Performs comprehensive repository analysis to generate intelligent todo lists',
+    systemPrompt: AGENT_PROMPTS.todo_generator,
+    tools: ['repo_scanner', 'commit_analyzer', 'health_checker', 'priority_assessor', 'todo_creator'],
+    maxSteps: 15,
+    temperature: 0.2,
+  },
 };
 
 // Default graph state structure
@@ -194,7 +214,7 @@ export const setNextAction = (state: GraphState, action: string): GraphState => 
 export const handleAgentError = (state: GraphState, error: Error): GraphState => {
   return {
     ...state,
-    next_action: 'error',
+    next_action: 'handleError',
     context: {
       ...state.context,
       error_message: error.message,
@@ -229,7 +249,7 @@ export const parseAgentResponse = (response: string): {
     };
   } catch (error) {
     return {
-      action: 'error',
+      action: 'handleError',
       reasoning: `Failed to parse response: ${error}`,
       data: { raw_response: response },
     };

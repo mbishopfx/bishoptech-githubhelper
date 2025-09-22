@@ -21,6 +21,7 @@ import {
   User,
   AlertCircle
 } from 'lucide-react';
+import { AdvancedLoadingAnimation, TODO_GENERATION_STEPS } from '@/components/ui/loading-animations';
 
 interface TodoItem {
   id: string;
@@ -56,7 +57,21 @@ export default function TodosPage() {
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all'); // all, completed, pending
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [repositories, setRepositories] = useState<any[]>([]);
+  
+  // New List Modal State
+  const [newListTitle, setNewListTitle] = useState('');
+  const [newListDescription, setNewListDescription] = useState('');
+  const [newListRepository, setNewListRepository] = useState('');
+  const [isCreatingList, setIsCreatingList] = useState(false);
+  
+  // New Item Modal State
+  const [newItemTitle, setNewItemTitle] = useState('');
+  const [newItemDescription, setNewItemDescription] = useState('');
+  const [newItemPriority, setNewItemPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [newItemHours, setNewItemHours] = useState('');
+  const [isCreatingItem, setIsCreatingItem] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -94,6 +109,16 @@ export default function TodosPage() {
 
   const generateAITodos = async (repositoryId: string) => {
     setIsGenerating(true);
+    setGenerationProgress(0);
+    
+    // Simulate progress during the analysis
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => {
+        if (prev < 90) return prev + Math.random() * 10;
+        return prev;
+      });
+    }, 800);
+
     try {
       const response = await fetch('/api/todos', {
         method: 'POST',
@@ -109,17 +134,33 @@ export default function TodosPage() {
 
       const data = await response.json();
       
+      // Complete progress
+      setGenerationProgress(100);
+      
       if (data.success) {
+        // Show success message
+        console.log('✅ AI todos generated successfully:', {
+          todosGenerated: data.todosGenerated,
+          executionTime: data.executionTime,
+          analysis: data.analysis
+        });
+        
         // Refresh todo lists to show the new one
-        loadTodoLists();
-        console.log('AI todos generated:', data.message);
+        setTimeout(() => {
+          loadTodoLists();
+        }, 1000);
       } else {
         console.error('Failed to generate AI todos:', data.error);
       }
     } catch (error) {
       console.error('Error generating AI todos:', error);
     } finally {
-      setIsGenerating(false);
+      clearInterval(progressInterval);
+      // Keep loading animation visible for a moment to show completion
+      setTimeout(() => {
+        setIsGenerating(false);
+        setGenerationProgress(0);
+      }, 2000);
     }
   };
 
@@ -260,13 +301,107 @@ export default function TodosPage() {
     return filtered;
   };
 
+  // Handle New List Form Submission
+  const handleNewListSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreatingList(true);
+
+    try {
+      const response = await fetch('/api/todos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newListTitle,
+          description: newListDescription,
+          repository_id: newListRepository || null,
+          userId: '550e8400-e29b-41d4-a716-446655440000'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Reset form
+        setNewListTitle('');
+        setNewListDescription('');
+        setNewListRepository('');
+        setShowNewListModal(false);
+        
+        // Reload lists
+        loadTodoLists();
+      } else {
+        console.error('Failed to create todo list:', data.error);
+      }
+    } catch (error) {
+      console.error('Error creating todo list:', error);
+    } finally {
+      setIsCreatingList(false);
+    }
+  };
+
+  // Handle New Item Form Submission
+  const handleNewItemSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedList) return;
+
+    setIsCreatingItem(true);
+
+    try {
+      const response = await fetch('/api/todos/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          todo_list_id: selectedList,
+          title: newItemTitle,
+          description: newItemDescription,
+          priority: newItemPriority,
+          estimated_hours: newItemHours ? parseFloat(newItemHours) : null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Reset form
+        setNewItemTitle('');
+        setNewItemDescription('');
+        setNewItemPriority('medium');
+        setNewItemHours('');
+        setShowNewItemModal(false);
+        
+        // Reload lists to get updated items
+        loadTodoLists();
+      } else {
+        console.error('Failed to create todo item:', data.error);
+      }
+    } catch (error) {
+      console.error('Error creating todo item:', error);
+    } finally {
+      setIsCreatingItem(false);
+    }
+  };
+
   if (!mounted) return null;
 
   const selectedTodoList = getSelectedTodoList();
   const filteredItems = getFilteredItems();
 
   return (
-    <div className="space-y-8">
+    <>
+      {/* Advanced Loading Animation */}
+      <AdvancedLoadingAnimation
+        isVisible={isGenerating}
+        title="Generating Intelligent Todos"
+        subtitle="Performing comprehensive repository analysis to create actionable tasks"
+        steps={TODO_GENERATION_STEPS}
+        progress={generationProgress}
+      />
+      
+      <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -518,6 +653,21 @@ export default function TodosPage() {
                             {item.description}
                           </p>
                           
+                          {/* Source badges */}
+                          {item.labels && item.labels.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-1 mb-3">
+                              {item.labels.map((label: string, idx: number) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 text-xs font-medium bg-blue-500/10 text-blue-300 rounded-full border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+                                  title={`Data source: ${label}`}
+                                >
+                                  {label}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          
                           <div className="flex items-center gap-4 text-sm">
                             <span className={`px-2 py-1 rounded-full border ${getPriorityColor(item.priority)}`}>
                               {item.priority}
@@ -587,5 +737,164 @@ export default function TodosPage() {
         </div>
       </div>
     </div>
+
+    {/* New List Modal */}
+    {showNewListModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="glass-card p-8 rounded-2xl max-w-md w-full mx-4"
+        >
+          <h3 className="text-2xl font-bold text-white mb-6">Create New Todo List</h3>
+          
+          <form onSubmit={handleNewListSubmit} className="space-y-4">
+            <div>
+              <label className="block text-gray-300 font-medium mb-2">List Title</label>
+              <input
+                type="text"
+                value={newListTitle}
+                onChange={(e) => setNewListTitle(e.target.value)}
+                className="w-full px-4 py-3 glass-subtle rounded-lg text-white placeholder-gray-400"
+                placeholder="Enter list title..."
+                required
+                autoFocus
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-300 font-medium mb-2">Description</label>
+              <textarea
+                value={newListDescription}
+                onChange={(e) => setNewListDescription(e.target.value)}
+                className="w-full px-4 py-3 glass-subtle rounded-lg text-white placeholder-gray-400 h-24 resize-none"
+                placeholder="Enter description..."
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-300 font-medium mb-2">Repository (Optional)</label>
+              <select
+                value={newListRepository}
+                onChange={(e) => setNewListRepository(e.target.value)}
+                className="w-full px-4 py-3 glass-subtle rounded-lg text-white"
+              >
+                <option value="">Select repository...</option>
+                {repositories.map(repo => (
+                  <option key={repo.id} value={repo.id} className="bg-gray-800">
+                    {repo.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="flex items-center gap-3 pt-4">
+              <button
+                type="submit"
+                disabled={isCreatingList}
+                className="flex-1 glass-card px-6 py-3 rounded-lg font-medium text-white hover:scale-105 transition-transform disabled:opacity-50"
+              >
+                {isCreatingList ? 'Creating...' : 'Create List'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setShowNewListModal(false)}
+                className="px-6 py-3 glass-subtle rounded-lg font-medium text-gray-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    )}
+
+    {/* New Item Modal */}
+    {showNewItemModal && selectedTodoList && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="glass-card p-8 rounded-2xl max-w-md w-full mx-4"
+        >
+          <h3 className="text-2xl font-bold text-white mb-6">Add New Task</h3>
+          
+          <form onSubmit={handleNewItemSubmit} className="space-y-4">
+            <div>
+              <label className="block text-gray-300 font-medium mb-2">Task Title</label>
+              <input
+                type="text"
+                value={newItemTitle}
+                onChange={(e) => setNewItemTitle(e.target.value)}
+                className="w-full px-4 py-3 glass-subtle rounded-lg text-white placeholder-gray-400"
+                placeholder="Enter task title..."
+                required
+                autoFocus
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-300 font-medium mb-2">Description</label>
+              <textarea
+                value={newItemDescription}
+                onChange={(e) => setNewItemDescription(e.target.value)}
+                className="w-full px-4 py-3 glass-subtle rounded-lg text-white placeholder-gray-400 h-24 resize-none"
+                placeholder="Enter task description..."
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-300 font-medium mb-2">Priority</label>
+                <select
+                  value={newItemPriority}
+                  onChange={(e) => setNewItemPriority(e.target.value as 'low' | 'medium' | 'high')}
+                  className="w-full px-4 py-3 glass-subtle rounded-lg text-white"
+                >
+                  <option value="low" className="bg-gray-800">Low Priority</option>
+                  <option value="medium" className="bg-gray-800">Medium Priority</option>
+                  <option value="high" className="bg-gray-800">High Priority</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-gray-300 font-medium mb-2">Estimated Hours</label>
+                <input
+                  type="number"
+                  value={newItemHours}
+                  onChange={(e) => setNewItemHours(e.target.value)}
+                  className="w-full px-4 py-3 glass-subtle rounded-lg text-white placeholder-gray-400"
+                  placeholder="Hours"
+                  min="0"
+                  step="0.5"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 pt-4">
+              <button
+                type="submit"
+                disabled={isCreatingItem}
+                className="flex-1 glass-card px-6 py-3 rounded-lg font-medium text-white hover:scale-105 transition-transform disabled:opacity-50"
+              >
+                {isCreatingItem ? 'Adding...' : 'Add Task'}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setShowNewItemModal(false)}
+                className="px-6 py-3 glass-subtle rounded-lg font-medium text-gray-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    )}
+    </>
   );
 }
