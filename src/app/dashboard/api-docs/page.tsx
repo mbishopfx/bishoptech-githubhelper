@@ -351,6 +351,55 @@ export default function ApiDocsPage() {
             </div>
           </div>
 
+          {/* Setup Instructions for Open Source Users */}
+          <div className="glass-subtle p-6 rounded-xl mb-6 border border-blue-500/30">
+            <div className="flex items-center gap-2 mb-4">
+              <Globe className="w-6 h-6 text-blue-400" />
+              <h3 className="text-lg font-bold text-blue-400">🚀 Deploy Your Own Instance</h3>
+            </div>
+            <p className="text-gray-300 mb-4">
+              This is an open-source project! Deploy your own GitHub Agent Dashboard to get started.
+            </p>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-bold text-white">1</div>
+                <div>
+                  <div className="text-white font-medium">Fork & Deploy</div>
+                  <div className="text-sm text-gray-400">
+                    Fork <a href="https://github.com/mbishopfx/bishoptech-githubhelper" target="_blank" className="text-blue-400 hover:underline">this repository</a> and deploy to Vercel
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-bold text-white">2</div>
+                <div>
+                  <div className="text-white font-medium">Configure Environment</div>
+                  <div className="text-sm text-gray-400">
+                    Add your OpenAI, Supabase, and GitHub API keys to Vercel environment variables
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-xs font-bold text-white">3</div>
+                <div>
+                  <div className="text-white font-medium">Setup Database</div>
+                  <div className="text-sm text-gray-400">
+                    Run the SQL setup script in your Supabase project from <code className="bg-gray-700 px-1 rounded">database/quick-setup.sql</code>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-xs font-bold text-white">✓</div>
+                <div>
+                  <div className="text-white font-medium">Start Using API</div>
+                  <div className="text-sm text-gray-400">
+                    Generate API keys from your dashboard and integrate with Cursor IDE
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-3 gap-6">
             <div className="glass-subtle p-4 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
@@ -368,13 +417,13 @@ export default function ApiDocsPage() {
             <div className="glass-subtle p-4 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="w-5 h-5 text-purple-400" />
-                <h3 className="font-semibold text-white">Base URL</h3>
+                <h3 className="font-semibold text-white">Your Deployed URL</h3>
               </div>
               <p className="text-sm text-gray-300">
-                All API requests should be made to:
+                Replace with your Vercel deployment URL:
               </p>
               <div className="mt-2 font-mono text-xs bg-gray-800 text-green-300 p-2 rounded">
-                https://your-domain.com
+                https://your-deployment.vercel.app
               </div>
             </div>
 

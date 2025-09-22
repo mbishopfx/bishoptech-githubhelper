@@ -11,9 +11,25 @@ The GitHub Agent Dashboard API is a comprehensive project management and AI auto
 - Intelligent chat assistance for codebases
 - Real-time webhooks for integration notifications
 
-Base URL: https://your-domain.com
+🚀 **OPEN SOURCE PROJECT**: Deploy your own instance at https://github.com/mbishopfx/bishoptech-githubhelper
+
+Base URL: https://your-deployment.vercel.app (replace with your deployment URL)
 API Version: 1.0
 Authentication: API Key (Bearer token or X-API-Key header)
+
+## Quick Setup for Your Own Instance
+
+1. **Fork the Repository**: https://github.com/mbishopfx/bishoptech-githubhelper
+2. **Deploy to Vercel**: Connect your forked repo to Vercel
+3. **Configure Environment Variables**:
+   - OPENAI_API_KEY (from OpenAI Platform)
+   - NEXT_PUBLIC_SUPABASE_URL (from Supabase project)
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY (from Supabase project)
+   - SUPABASE_SERVICE_ROLE_KEY (from Supabase project)
+   - GITHUB_TOKEN (GitHub Personal Access Token)
+   - NEXTAUTH_SECRET (random 32-character string)
+4. **Setup Database**: Run `database/quick-setup.sql` in your Supabase SQL editor
+5. **Generate API Keys**: Visit your deployment's `/dashboard/api-keys` page
 
 ## Authentication
 
@@ -103,7 +119,7 @@ POST /api/v1/webhooks
 When starting work on a project, automatically generate todos:
 
 ```javascript
-const response = await fetch('https://your-domain.com/api/v1/todos', {
+const response = await fetch('https://your-deployment.vercel.app/api/v1/todos', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer gha_your_api_key',
@@ -122,7 +138,7 @@ const response = await fetch('https://your-domain.com/api/v1/todos', {
 Generate weekly/daily project summaries:
 
 ```javascript
-const recap = await fetch('https://your-domain.com/api/v1/recaps', {
+const recap = await fetch('https://your-deployment.vercel.app/api/v1/recaps', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer gha_your_api_key',
@@ -140,7 +156,7 @@ const recap = await fetch('https://your-domain.com/api/v1/recaps', {
 Get AI help about specific projects:
 
 ```javascript
-const aiResponse = await fetch('https://your-domain.com/api/v1/ai/chat', {
+const aiResponse = await fetch('https://your-deployment.vercel.app/api/v1/ai/chat', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer gha_your_api_key',
