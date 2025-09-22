@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { getSingleUserId, getSingleUser } from './single-user';
 
 // API Key Management
 const MASTER_API_KEY = process.env.MASTER_API_KEY || 'gha-' + crypto.randomBytes(24).toString('hex');
@@ -36,15 +37,28 @@ export async function validateApiKey(request: NextRequest): Promise<{
   const authHeader = request.headers.get('authorization');
   const apiKey = authHeader?.replace('Bearer ', '') || request.headers.get('x-api-key');
 
+  // For single-user system, we're more lenient with API keys
+  // Accept any reasonable API key or no key at all for development
+  const singleUserId = getSingleUserId();
+  
+  // No API key required for development/personal use
   if (!apiKey) {
-    return { valid: false, error: 'API key required' };
+    return { 
+      valid: true, 
+      user_id: singleUserId,
+      key_data: {
+        name: 'Single User Access',
+        permissions: ['*'],
+        rate_limit: 10000
+      }
+    };
   }
 
   // Check master key
   if (apiKey === MASTER_API_KEY) {
     return { 
       valid: true, 
-      user_id: '550e8400-e29b-41d4-a716-446655440000', // Demo user
+      user_id: singleUserId,
       key_data: {
         name: 'Master Key',
         permissions: ['*'],
@@ -53,21 +67,29 @@ export async function validateApiKey(request: NextRequest): Promise<{
     };
   }
 
-  // TODO: In production, validate against database
-  // For now, accept any key starting with 'gha_'
+  // Accept any key starting with 'gha_' for single-user system
   if (apiKey.startsWith('gha_')) {
     return { 
       valid: true, 
-      user_id: '550e8400-e29b-41d4-a716-446655440000',
+      user_id: singleUserId,
       key_data: {
-        name: 'Development Key',
+        name: 'Personal API Key',
         permissions: ['read', 'write', 'admin'],
-        rate_limit: 1000
+        rate_limit: 10000
       }
     };
   }
 
-  return { valid: false, error: 'Invalid API key' };
+  // For single-user system, be very permissive
+  return { 
+    valid: true, 
+    user_id: singleUserId,
+    key_data: {
+      name: 'Personal Access',
+      permissions: ['*'],
+      rate_limit: 5000
+    }
+  };
 }
 
 export function checkRateLimit(apiKey: string, limit: number = 1000): {
@@ -138,7 +160,7 @@ export function createApiError(message: string, status = 400, code?: string) {
   });
 }
 
-// Middleware wrapper for API routes
+// Middleware wrapper for API routes (simplified for single-user system)
 export function withApiAuth(handler: (request: NextRequest, context: any, authData: any) => Promise<NextResponse>) {
   return async (request: NextRequest, context: any) => {
     try {
@@ -154,22 +176,17 @@ export function withApiAuth(handler: (request: NextRequest, context: any, authDa
         });
       }
 
-      // Validate API key
+      // For single-user system, always authenticate as the single user
       const auth = await validateApiKey(request);
-      if (!auth.valid) {
-        return createApiError(auth.error || 'Authentication failed', 401, 'AUTH_FAILED');
-      }
-
-      // Check rate limit
-      const rateLimit = checkRateLimit(request.headers.get('authorization') || 'unknown', auth.key_data?.rate_limit || 1000);
-      if (!rateLimit.allowed) {
-        return createApiError('Rate limit exceeded', 429, 'RATE_LIMIT_EXCEEDED');
-      }
+      // Auth will always be valid for single-user system
+      
+      // Simplified rate limiting for personal use
+      const rateLimit = { allowed: true, remaining: 9999, resetTime: Date.now() + 86400000 };
 
       // Add rate limit headers
       const rateLimitHeaders = {
-        'X-RateLimit-Limit': auth.key_data?.rate_limit?.toString() || '1000',
-        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+        'X-RateLimit-Limit': '10000',
+        'X-RateLimit-Remaining': '9999',
         'X-RateLimit-Reset': rateLimit.resetTime.toString()
       };
 
@@ -184,6 +201,30 @@ export function withApiAuth(handler: (request: NextRequest, context: any, authDa
       return response;
     } catch (error) {
       console.error('API Auth Middleware Error:', error);
+      return createApiError('Internal server error', 500, 'INTERNAL_ERROR');
+    }
+  };
+}
+
+// Simple wrapper that doesn't require authentication (for development/single-user)
+export function withSingleUser(handler: (request: NextRequest, context: any) => Promise<NextResponse>) {
+  return async (request: NextRequest, context: any) => {
+    try {
+      // Handle preflight requests
+      if (request.method === 'OPTIONS') {
+        return new NextResponse(null, {
+          status: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+          }
+        });
+      }
+
+      return await handler(request, context);
+    } catch (error) {
+      console.error('Single User API Error:', error);
       return createApiError('Internal server error', 500, 'INTERNAL_ERROR');
     }
   };

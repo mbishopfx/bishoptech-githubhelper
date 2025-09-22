@@ -157,7 +157,7 @@ export default function ChatPage() {
           message: userMessage.content,
           repositoryId: selectedRepo.id,
           conversationId: conversations[conversationKey]?.id,
-          userId: '550e8400-e29b-41d4-a716-446655440000', // Demo user UUID
+          // No userId needed - using single-user system
         }),
       });
 

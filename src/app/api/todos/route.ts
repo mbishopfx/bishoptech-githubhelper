@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getSingleUserId } from '@/lib/single-user';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,7 +11,8 @@ const supabase = createClient(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || '550e8400-e29b-41d4-a716-446655440000'; // Demo user
+    // Use single user - no need for userId parameter
+    const userId = getSingleUserId();
     const repositoryId = searchParams.get('repositoryId');
 
     let query = supabase
@@ -48,7 +50,9 @@ export async function GET(request: NextRequest) {
 // POST - Create new todo list or generate AI todos
 export async function POST(request: NextRequest) {
   try {
-    const { type, userId = '550e8400-e29b-41d4-a716-446655440000', repositoryId, title, description, items } = await request.json();
+    const { type, repositoryId, title, description, items } = await request.json();
+    // Use single user - no need for userId parameter
+    const userId = getSingleUserId();
 
     if (type === 'generate-ai') {
       // Generate AI todos for repository

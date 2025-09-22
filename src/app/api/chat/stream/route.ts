@@ -4,6 +4,7 @@ import { HumanMessage } from '@langchain/core/messages';
 import { createClient } from '@supabase/supabase-js';
 import { AGENT_CONFIGS } from '@/lib/agents/config';
 import { githubFetchTool, techStackDetectorTool, fileAnalyzerTool, codeQualityAssessorTool } from '@/lib/agents/tools';
+import { getSingleUserId } from '@/lib/single-user';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -16,11 +17,14 @@ const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { message, repositoryId, conversationId, userId } = body;
+    const { message, repositoryId, conversationId } = body;
+    
+    // Use single user system - no need for userId parameter
+    const userId = getSingleUserId();
 
-    if (!message || !userId) {
+    if (!message) {
       return NextResponse.json(
-        { error: 'Message and User ID are required' },
+        { error: 'Message is required' },
         { status: 400 }
       );
     }

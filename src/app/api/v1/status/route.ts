@@ -71,7 +71,8 @@ export async function GET(request: NextRequest) {
         ai_chat: aiStatus === 'healthy',
         github_analysis: githubStatus === 'healthy',
         streaming: true,
-        webhooks: true
+        webhooks: true,
+        single_user_mode: true
       },
       rate_limits: {
         requests_per_day: 1000,
