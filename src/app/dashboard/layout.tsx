@@ -182,8 +182,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Github className="w-6 h-6 text-blue-400" />
           </div>
           <div className={`transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
-            <h1 className="text-lg font-bold text-white">GitHub Agent</h1>
-            <p className="text-xs text-gray-400">AI Dashboard</p>
+            <h1 className="text-lg font-bold text-white">GitHub Helper</h1>
+            <p className="text-xs text-gray-400">AI Assistant</p>
           </div>
         </Link>
         
@@ -350,8 +350,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Github className="w-6 h-6 text-blue-400" />
                   </div>
                   <div>
-                    <h1 className="text-lg font-bold text-white">GitHub Agent</h1>
-                    <p className="text-xs text-gray-400">AI Dashboard</p>
+                    <h1 className="text-lg font-bold text-white">GitHub Helper</h1>
+                    <p className="text-xs text-gray-400">AI Assistant</p>
                   </div>
                 </Link>
                 
@@ -394,7 +394,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                        pathname.includes('settings') ? 'Settings' : 'Dashboard'}
                     </h1>
                     <p className="text-gray-400">
-                      {pathname === '/dashboard' ? 'Welcome to your GitHub Agent Dashboard' :
+                      {pathname === '/dashboard' ? 'Welcome to your GitHub Helper' :
                        pathname.includes('repositories') ? 'Manage and analyze your GitHub repositories' :
                        pathname.includes('chat') ? 'Chat with your repositories using AI' :
                        pathname.includes('todos') ? 'Manage your project tasks and todos' :

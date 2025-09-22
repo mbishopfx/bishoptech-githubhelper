@@ -91,8 +91,8 @@ export default function SettingsPage() {
   const [manifestData, setManifestData] = useState<ManifestData | null>(null);
 
   const [slackConfig, setSlackConfig] = useState<SlackConfig>({
-    botName: 'GitHub Agent Bot',
-    appName: 'GitHub Agent Dashboard',
+    botName: 'GitHub Helper Bot',
+    appName: 'GitHub Helper',
     description: 'AI-powered GitHub repository assistant for Slack',
     features: {
       chatCommands: true,
@@ -255,7 +255,7 @@ export default function SettingsPage() {
             </div>
             <h1 className="text-3xl font-bold text-white">Settings</h1>
           </div>
-          <p className="text-gray-400">Configure your GitHub Agent Dashboard and Slack integration</p>
+          <p className="text-gray-400">Configure your GitHub Helper and Slack integration</p>
         </motion.div>
 
         {/* Tabs */}
@@ -305,7 +305,7 @@ export default function SettingsPage() {
                         value={slackConfig.botName}
                         onChange={(e) => setSlackConfig(prev => ({ ...prev, botName: e.target.value }))}
                         className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
-                        placeholder="GitHub Agent Bot"
+                        placeholder="GitHub Helper Bot"
                       />
                     </div>
                     
@@ -318,7 +318,7 @@ export default function SettingsPage() {
                         value={slackConfig.appName}
                         onChange={(e) => setSlackConfig(prev => ({ ...prev, appName: e.target.value }))}
                         className="w-full glass-subtle rounded-lg px-4 py-3 text-white"
-                        placeholder="GitHub Agent Dashboard"
+                        placeholder="GitHub Helper"
                       />
                     </div>
                     

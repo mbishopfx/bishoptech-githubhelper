@@ -344,7 +344,7 @@ export default function ApiDocsPage() {
               <Globe className="w-8 h-8 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">GitHub Agent API Documentation</h1>
+              <h1 className="text-3xl font-bold text-white">GitHub Helper API Documentation</h1>
               <p className="text-gray-300 mt-2">
                 Comprehensive API for AI-powered project management and automation
               </p>
@@ -358,7 +358,7 @@ export default function ApiDocsPage() {
               <h3 className="text-lg font-bold text-blue-400">🚀 Deploy Your Own Instance</h3>
             </div>
             <p className="text-gray-300 mb-4">
-              This is an open-source project! Deploy your own GitHub Agent Dashboard to get started.
+              This is an open-source project! Deploy your own GitHub Helper to get started.
             </p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">

@@ -1,10 +1,10 @@
-# GitHub Agent Dashboard API - LLM Integration Guide
+# GitHub Helper API - LLM Integration Guide
 
-This file provides comprehensive information about the GitHub Agent Dashboard API for LLM integration in Cursor IDE.
+This file provides comprehensive information about the GitHub Helper API for LLM integration in Cursor IDE.
 
 ## API Overview
 
-The GitHub Agent Dashboard API is a comprehensive project management and AI automation service that provides:
+The GitHub Helper API is a comprehensive project management and AI automation service that provides:
 - Project/repository management and analysis
 - AI-powered todo list generation
 - Automated project recaps and summaries

@@ -5,7 +5,7 @@ export const SINGLE_USER = {
   id: '550e8400-e29b-41d4-a716-446655440000', // Fixed UUID for consistency
   email: process.env.SINGLE_USER_EMAIL || 'user@example.com', 
   github_username: process.env.SINGLE_USER_GITHUB_USERNAME || 'your-github-username',
-  name: process.env.SINGLE_USER_NAME || 'GitHub Agent User',
+  name: process.env.SINGLE_USER_NAME || 'GitHub Helper User',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
 };
