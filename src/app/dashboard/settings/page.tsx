@@ -111,12 +111,19 @@ export default function SettingsPage() {
     ],
   });
 
-  const webhookUrl = process.env.NODE_ENV === 'development' 
-    ? 'https://your-domain.vercel.app/api/slack/events'
-    : `${window.location.origin}/api/slack/events`;
+  const [webhookUrl, setWebhookUrl] = useState<string>('https://your-domain.vercel.app/api/slack/events');
 
   useEffect(() => {
     setMounted(true);
+    
+    // Set webhook URL after component mounts (client-side only)
+    if (typeof window !== 'undefined') {
+      const url = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:3000/api/slack/events'
+        : `${window.location.origin}/api/slack/events`;
+      setWebhookUrl(url);
+    }
+    
     // TODO: Load existing settings from API
   }, []);
 
