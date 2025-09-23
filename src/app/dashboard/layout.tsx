@@ -48,6 +48,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['repositories']);
   const pathname = usePathname();
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Force logout anyway
+      window.location.href = '/';
+    }
+  };
+
   useEffect(() => {
     // Close mobile menu on route change
     setMobileMenuOpen(false);
@@ -285,12 +296,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-white">Demo User</p>
-              <p className="text-xs text-gray-400">demo@example.com</p>
+              <p className="text-sm font-medium text-white">BishopTech</p>
+              <p className="text-xs text-gray-400">matt@bishoptech.dev</p>
             </div>
           </div>
           
-          <button className="p-1.5 glass-subtle rounded-lg hover:bg-white/10 transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="p-1.5 glass-subtle rounded-lg hover:bg-white/10 transition-colors"
+            title="Sign out"
+          >
             <LogOut className="w-4 h-4 text-gray-400" />
           </button>
         </div>

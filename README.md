@@ -1,395 +1,312 @@
-# GitHub Agent Dashboard
+# GitHub Helper - AI Project Management System 🤖
 
-A sophisticated AI-powered dashboard for managing and understanding your GitHub repositories using LangGraph multi-agent workflows and GPT-4o.
+> Transform your GitHub repositories into an AI-powered project management hub. Solo-dev organization, finally figured out.
 
-![GitHub Agent Dashboard](https://img.shields.io/badge/AI%20Powered-LangGraph-blue)
-![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20%7C%20TypeScript%20%7C%20Supabase-green)
-![UI Theme](https://img.shields.io/badge/UI-Glassmorphic%20Dark-purple)
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue?logo=typescript)
+![OpenAI](https://img.shields.io/badge/AI-GPT--4o-green?logo=openai)
+![Supabase](https://img.shields.io/badge/Database-Supabase-green?logo=supabase)
 
-## ✨ Features
+## ✨ What This Actually Does
 
-### 🤖 Multi-Agent AI System
-- **Repository Analyzer**: Deep analysis of codebase structure, tech stack, and code quality
-- **Todo Creator**: Generates actionable task lists based on repository analysis
-- **Recap Generator**: Creates meeting-ready project summaries and status reports
-- **Chat Assistant**: Intelligent conversations about your repositories
-- **Tech Stack Analyzer**: Comprehensive technology assessment and recommendations
-- **Meeting Prep**: Executive-ready summaries for stakeholder meetings
+Stop hunting down project timelines. Stop scrambling for client meeting summaries. This system reads your actual repositories and gives you:
 
-### 📊 Core Capabilities
-- **Repository Import**: Seamlessly import repositories from GitHub
-- **AI-Powered Analysis**: Understand architecture, dependencies, and code quality
-- **Intelligent Chat**: Ask questions about your codebase and get AI-powered answers
-- **Smart Todo Lists**: Generate prioritized tasks based on code analysis
-- **Automated Recaps**: Perfect for meetings and project updates
-- **Real-time Insights**: Track project health and development metrics
+- **🧠 AI Repository Analysis**: Deep understanding of your codebase structure, tech stack, and code quality
+- **📝 Smart Todo Generation**: AI creates actionable task lists based on your actual code, not generic templates  
+- **📊 Automated Project Recaps**: Perfect meeting summaries with real GitHub metrics
+- **💬 Repository Chat**: Ask your codebase questions and get intelligent answers
+- **🔗 Full REST API**: Integrate with Cursor IDE, Slack, or anywhere else you need project data
+- **🎨 Beautiful UI**: Glassmorphic dark theme that doesn't hurt your eyes during late-night coding
 
-### 🎨 Modern UI/UX
-- **Glassmorphic Design**: macOS Tahoe-inspired dark theme
-- **Framer Motion Animations**: Smooth, physics-based interactions
-- **Responsive Layout**: Works perfectly on desktop and mobile
-- **Interactive Components**: Hover effects and micro-interactions
-- **Dark Theme**: Easy on the eyes for long coding sessions
+## 🚀 Quick Start (5 Minutes to Running)
 
-## 🚀 Getting Started
+### 1. Clone & Install
+```bash
+git clone https://github.com/mbishopfx/bishoptech-githubhelper.git
+cd bishoptech-githubhelper
+npm install
+```
 
-### Prerequisites
+### 2. Get Your API Keys
 
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-- OpenAI API key
-- GitHub Personal Access Token
+You'll need these services (all have free tiers):
 
-### Installation
+#### OpenAI API Key
+1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Create a new API key
+3. Copy it (starts with `sk-`)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/github-agent-dashboard.git
-   cd github-agent-dashboard
-   ```
+#### Supabase Setup
+1. Create account at [Supabase](https://supabase.com)
+2. Create a new project
+3. Go to Settings → API
+4. Copy your **Project URL** and **anon public** key
+5. Go to Settings → API → Service Role keys
+6. Copy your **service_role** key (keep this secret!)
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+#### GitHub Token
+1. Go to [GitHub Settings → Personal Access Tokens](https://github.com/settings/tokens)
+2. Create new token (classic)
+3. Select scopes: `repo`, `read:user`, `read:org`
+4. Copy your token (starts with `ghp_` or `github_pat_`)
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.local.example .env.local
-   ```
-   
-   Fill in your environment variables:
-   ```env
-   # OpenAI API Key
-   OPENAI_API_KEY=your_openai_api_key_here
-   
-   # Supabase Configuration
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
-   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
-   
-   # GitHub API
-   GITHUB_TOKEN=your_github_token_here
-   
-   # App Configuration
-   NEXTAUTH_SECRET=your_nextauth_secret_here
-   NEXTAUTH_URL=http://localhost:3000
-   ```
+### 3. Environment Setup
+```bash
+# Copy the environment template
+cp .env.local.example .env.local
+```
 
-4. **Set up Supabase database**
-   ```bash
-   # Run the database schema
-   # Copy the contents of /database/schema.sql and run in your Supabase SQL editor
-   ```
+Edit `.env.local` with your keys:
+```env
+# OpenAI Configuration
+OPENAI_API_KEY=sk-your-openai-key-here
 
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+# Supabase Configuration  
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
 
-6. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+# GitHub Integration
+GITHUB_TOKEN=your-github-token-here
 
-## 🏗️ Architecture
+# App Security (generate a random 32+ character string)
+NEXTAUTH_SECRET=your-random-secret-string-here
 
-### Tech Stack
-- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
-- **AI/ML**: LangGraph, OpenAI GPT-4o, LangChain
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Animations**: Framer Motion
-- **Icons**: Lucide React
-- **Deployment**: Vercel
+# Single User Configuration (personalize it!)
+SINGLE_USER_EMAIL=your-email@example.com
+SINGLE_USER_GITHUB_USERNAME=your-github-username
+SINGLE_USER_NAME=Your Display Name
+
+# API Security (for integrations)
+MASTER_API_KEY=gha_your-generated-api-key
+```
+
+### 4. Database Setup
+```bash
+# Copy the database setup script
+# Go to your Supabase project → SQL Editor
+# Paste and run the contents of: database/quick-setup.sql
+```
+
+Or run it manually:
+1. Open Supabase SQL Editor
+2. Copy contents from `database/quick-setup.sql`
+3. Run the script
+4. Verify tables were created in Table Editor
+
+### 5. Run It!
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) - you should see the GitHub Helper dashboard!
+
+## 🏗️ Architecture Overview
+
+### Backend Power (API Layer)
+- **Next.js 15 API Routes**: Rock-solid `/api/v1/` endpoints
+- **LangGraph Multi-Agent System**: AI agents that specialize in different tasks
+- **GPT-4o Integration**: Context-aware AI that actually understands your code
+- **Supabase PostgreSQL**: Scalable database with Row Level Security
+- **GitHub API via Octokit**: Real-time repository data and analysis
+- **Single-User Auth**: Simplified security model for personal/small team use
+
+### Frontend Experience
+- **Glassmorphic UI**: macOS-inspired dark theme that looks professional
+- **Framer Motion**: Smooth animations and micro-interactions
+- **TypeScript**: Full type safety across the entire application  
+- **Tailwind CSS**: Utility-first styling with custom glassmorphic components
+- **Real-time Streaming**: AI responses stream in real-time, no loading screens
+- **Mobile Responsive**: Works great on phones and tablets
 
 ### Project Structure
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   ├── globals.css        # Global styles (glassmorphic theme)
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx          # Landing page
+├── app/
+│   ├── api/v1/              # Versioned API endpoints
+│   │   ├── ai/chat/         # AI chat functionality
+│   │   ├── projects/        # Repository management
+│   │   ├── todos/           # Task management
+│   │   └── recaps/          # Project summaries
+│   └── dashboard/           # UI pages
+│       ├── chat/            # Chat interface
+│       ├── todos/           # Task management
+│       └── repositories/    # Repository browser
 ├── lib/
-│   ├── agents/            # LangGraph agents
-│   │   ├── config.ts      # Agent configurations
-│   │   ├── tools.ts       # AI tools and functions
-│   │   └── graphs/        # Agent graph definitions
-│   ├── github.ts          # GitHub API integration
-│   └── supabase.ts        # Database client
-├── types/
-│   └── database.ts        # TypeScript type definitions
-└── components/            # React components (to be added)
+│   ├── agents/              # AI agent implementations
+│   │   ├── graphs/          # LangGraph workflow definitions
+│   │   └── tools.ts         # AI tools and functions
+│   ├── github.ts            # GitHub API integration
+│   └── supabase.ts          # Database client
+└── components/ui/           # Reusable UI components
 ```
 
-### Database Schema
+## 🎯 How to Use It
 
-The system uses a comprehensive PostgreSQL schema with:
-- **users**: User profiles and GitHub integration
-- **repositories**: GitHub repository data and analysis
-- **conversations**: Chat history with AI agents
-- **messages**: Individual chat messages
-- **todo_lists** & **todo_items**: Task management
-- **recaps**: Project summaries and meeting reports
-- **agent_executions**: LangGraph workflow tracking
+### Import Your Repositories
+1. Navigate to **Repositories** in the dashboard
+2. Click **Import from GitHub**
+3. Your repositories will be analyzed automatically
+4. Review the AI-generated insights
 
-## 🔧 Configuration
+### Generate Smart Todos
+1. Select any repository
+2. Click **Generate Todo List**
+3. AI analyzes your code and creates actionable tasks
+4. Tasks are prioritized based on code complexity and dependencies
 
-### OpenAI Setup
-1. Get an API key from [OpenAI Platform](https://platform.openai.com/)
-2. Add to `.env.local`: `OPENAI_API_KEY=your_key_here`
+### Create Project Recaps
+1. Go to **Recaps** section
+2. Select date range and repositories
+3. AI generates meeting-ready summaries with:
+   - Progress metrics from GitHub
+   - Recent commits and changes
+   - Identified issues and recommendations
+   - Next steps and priorities
 
-### Supabase Setup
-1. Create a new project at [Supabase](https://supabase.com/)
-2. Run the schema from `database/schema.sql`
-3. Add credentials to `.env.local`
+### Chat With Your Repositories
+1. Open any repository in the **Chat** interface
+2. Ask questions like:
+   - "What's the main architecture of this project?"
+   - "What dependencies need updating?"
+   - "What would be the best way to add user authentication?"
+3. AI provides context-aware answers based on your actual code
 
-### GitHub Integration
-1. Create a Personal Access Token at [GitHub Settings](https://github.com/settings/tokens)
-2. Grant permissions: `repo`, `read:user`, `read:org`
-3. Add to `.env.local`: `GITHUB_TOKEN=your_token_here`
+## 🔗 API Integration
 
-## 🎯 Usage
+### Cursor IDE Integration
+Add this to your Cursor rules:
+```
+# GitHub Helper API
+LLM Integration: https://your-deployment.vercel.app/llm.txt
+```
 
-### Importing Repositories
-1. Click "Connect GitHub" on the dashboard
-2. Authenticate with your GitHub account
-3. Select repositories to import and analyze
+### Example API Calls
+```javascript
+// Generate AI todos for any project
+const response = await fetch('/api/v1/todos', {
+  method: 'POST',
+  headers: { 
+    'Authorization': 'Bearer gha_your_api_key',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    title: 'Sprint Planning Tasks',
+    ai_generate: true,
+    context_prompt: 'Focus on testing and performance improvements'
+  })
+});
 
-### Repository Analysis
-1. Select a repository from your dashboard
-2. Click "Analyze" to start AI-powered analysis
-3. Review tech stack, code quality, and recommendations
+// Get project recap
+const recap = await fetch('/api/v1/recaps', {
+  method: 'POST',
+  headers: { 'Authorization': 'Bearer gha_your_api_key' },
+  body: JSON.stringify({
+    period: 'weekly',
+    include_metrics: true
+  })
+});
+```
 
-### Chat Interface
-1. Navigate to any repository
-2. Use the chat interface to ask questions:
-   - "What's the architecture of this project?"
-   - "Show me the main dependencies"
-   - "What needs to be improved?"
+## 🚀 Deployment (Production Ready)
 
-### Todo Lists
-1. Generate todo lists from repository analysis
-2. Prioritize tasks automatically
-3. Export to GitHub Issues (optional)
+### Vercel Deployment (Recommended)
+```bash
+# Install Vercel CLI
+npm i -g vercel
 
-### Project Recaps
-1. Select date range for analysis
-2. Generate automated summaries
-3. Export meeting-ready reports
-
-## 🚀 Deployment
-
-### Vercel Deployment
-1. Connect your GitHub repository to Vercel
-2. Add environment variables in Vercel dashboard
-3. Deploy automatically on push
+# Deploy
+vercel --prod
+```
 
 ### Environment Variables for Production
-```env
+Add these in your Vercel dashboard:
+```
 NODE_ENV=production
-OPENAI_API_KEY=your_production_key
+OPENAI_API_KEY=your_production_openai_key
 NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_supabase_key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_production_service_key
 GITHUB_TOKEN=your_production_github_token
-NEXTAUTH_SECRET=your_production_secret
-NEXTAUTH_URL=https://your-domain.vercel.app
+NEXTAUTH_SECRET=your_production_secret_minimum_32_chars
+SINGLE_USER_EMAIL=your-email@domain.com
+SINGLE_USER_GITHUB_USERNAME=your-github-username
+SINGLE_USER_NAME=Your Display Name
+MASTER_API_KEY=gha_your_production_api_key
 ```
 
-## 🔮 Roadmap
+## 🔧 Customization
 
-### Phase 1: Core Features (Current)
-- [x] Project setup with Next.js + TypeScript
-- [x] Supabase database schema
-- [x] LangGraph agent system
-- [x] GitHub API integration
-- [x] Glassmorphic UI foundation
-- [ ] Chat interface implementation
-- [ ] Todo system completion
-- [ ] Recap generation system
+### Modify AI Behavior
+Edit `src/lib/agents/config.ts`:
+```typescript
+export const AI_CONFIG = {
+  model: 'gpt-4o',  // Change AI model
+  temperature: 0.7,  // Adjust creativity (0.0-1.0)
+  maxTokens: 2000,   // Response length limit
+};
+```
 
-### Phase 2: Enhanced Features
-- [ ] Real-time collaboration
-- [ ] Advanced analytics dashboard
-- [ ] Integration with more Git providers
-- [ ] Mobile app (React Native)
-- [ ] Advanced AI models fine-tuning
+### Custom UI Theme
+Modify `tailwind.config.ts` and `src/app/globals.css` for your branding.
 
-### Phase 3: Enterprise Features
-- [ ] Team management
-- [ ] Advanced security features
-- [ ] Custom AI agent creation
-- [ ] Enterprise SSO
-- [ ] Advanced reporting
+### Add New AI Agents
+Create new graphs in `src/lib/agents/graphs/` using the LangGraph framework.
 
-## 🤝 Contributing
+## 🐛 Troubleshooting
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Common Issues
+
+**"Can't connect to Supabase"**
+- Verify your `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Make sure you ran the database setup script
+- Check that your Supabase project is active (not paused)
+
+**"GitHub API rate limit exceeded"**
+- Your `GITHUB_TOKEN` might be invalid or expired
+- Create a new token with proper scopes: `repo`, `read:user`, `read:org`
+- GitHub has rate limits - wait an hour or upgrade to GitHub Pro
+
+**"OpenAI API errors"**
+- Check your `OPENAI_API_KEY` is correct (starts with `sk-`)
+- Verify you have credits in your OpenAI account
+- Some features require GPT-4 access
+
+**"Database errors"**
+- Run `database/quick-setup.sql` again in Supabase SQL Editor
+- Check that all tables were created in your Supabase Table Editor
+- Verify your `SUPABASE_SERVICE_ROLE_KEY` has full database access
+
+### Getting Help
+
+If you're stuck:
+1. Check the [Issues tab](https://github.com/mbishopfx/bishoptech-githubhelper/issues) for similar problems
+2. Create a new issue with:
+   - Your operating system
+   - Node.js version (`node --version`)
+   - Error message (remove any API keys!)
+   - Steps you've tried
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - feel free to fork, modify, and use in your own projects!
 
-## 🙏 Acknowledgments
+## 🙏 Built With
 
-- [LangGraph](https://github.com/langchain-ai/langgraph) for multi-agent workflows
-- [OpenAI](https://openai.com/) for GPT-4o
-- [Supabase](https://supabase.com/) for the backend infrastructure
-- [Vercel](https://vercel.com/) for deployment platform
-- [Framer Motion](https://www.framer.com/motion/) for animations
-
-## 📞 Support
-
-Need help? Have questions?
-- 📧 Email: support@github-agent-dashboard.com
-- 💬 Discord: [Join our community](https://discord.gg/your-invite)
-- 📖 Docs: [Documentation](https://docs.github-agent-dashboard.com)
+- [Next.js 15](https://nextjs.org/) - React framework
+- [OpenAI GPT-4o](https://openai.com/) - AI language model  
+- [LangGraph](https://github.com/langchain-ai/langgraph) - Multi-agent AI workflows
+- [Supabase](https://supabase.com/) - PostgreSQL database and auth
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Framer Motion](https://www.framer.com/motion/) - Animation library
+- [GitHub API](https://docs.github.com/en/rest) - Repository data access
 
 ---
 
 <div align="center">
-  <strong>Built with ❤️ for developers who want to stay on top of their projects</strong>
-</div># GitHub Helper - AI Project Management API Hub
+<strong>Built with ❤️ for developers who want to stay organized without the overhead</strong>
 
-## 🚀 AI-Powered Project Management & GitHub Helper
+<p>⭐ Star this repo if it helps you get organized!</p>
 
-A comprehensive Next.js application that transforms into a centralized API hub for AI-powered project management, automated task generation, and intelligent code assistance.
-
-### ✨ Key Features
-
-- **🤖 AI Assistant**: Chat with your repositories using GPT-4o with real GitHub data access
-- **📝 Smart Todo Generation**: AI-generated task lists based on repository analysis  
-- **📊 Automated Recaps**: Weekly/monthly project summaries with GitHub metrics
-- **🔗 RESTful API**: Complete API server for integration with other projects
-- **📚 Interactive Documentation**: Beautiful API docs with live examples
-- **🔐 API Key Management**: Secure authentication with usage tracking
-- **🎨 Glassmorphic UI**: Modern dark theme with Framer Motion animations
-- **📡 Real-time Streaming**: Streaming AI responses with markdown rendering
-
-### 🛠 Tech Stack
-
-- **Framework**: Next.js 15 with TypeScript
-- **AI/ML**: OpenAI GPT-4o, LangChain, LangGraph
-- **Database**: Supabase (PostgreSQL)
-- **Styling**: Tailwind CSS, Framer Motion
-- **APIs**: GitHub API (Octokit), RESTful endpoints
-- **Authentication**: API key-based with rate limiting
-
-### 🎯 Use Cases
-
-- **Cursor IDE Integration**: Add AI project management to any Cursor workspace
-- **Automated Standup Reports**: Generate daily/weekly project summaries
-- **Smart Task Planning**: AI-generated todos based on codebase analysis
-- **Code Assistance**: Repository-aware AI chat for development help
-- **Project Monitoring**: Real-time insights and progress tracking
-
-### 🚀 Getting Started
-
-1. **Clone and Install**
-   \`\`\`bash
-   git clone https://github.com/mbishopfx/bishoptech-githubhelper.git
-   cd bishoptech-githubhelper
-   npm install
-   \`\`\`
-
-2. **Environment Setup**
-   \`\`\`bash
-   cp .env.example .env.local
-   # Add your API keys (OpenAI, Supabase, GitHub)
-   \`\`\`
-
-3. **Database Setup**
-   \`\`\`bash
-   # Run the database setup script in Supabase SQL Editor
-   # Use database/quick-setup.sql for quick start
-   \`\`\`
-
-4. **Run Development Server**
-   \`\`\`bash
-   npm run dev
-   # Open http://localhost:3000
-   \`\`\`
-
-### 📡 API Integration
-
-Add to your Cursor rules for LLM integration:
-\`\`\`
-https://your-domain.com/llm.txt
-\`\`\`
-
-**Example API Usage:**
-\`\`\`javascript
-// Generate AI todos for any project
-const todos = await fetch('/api/v1/todos', {
-  method: 'POST',
-  headers: { 'Authorization': 'Bearer gha_your_key' },
-  body: JSON.stringify({
-    title: 'Sprint Tasks',
-    project_id: 'proj_123',
-    ai_generate: true,
-    context_prompt: 'Focus on testing and performance'
-  })
-});
-\`\`\`
-
-### 🎨 Screenshots
-
-- 🏠 **Dashboard**: Glassmorphic overview with real-time stats
-- 💬 **AI Chat**: Streaming conversations with repository context  
-- 📝 **Todo Management**: AI-generated and manual task lists
-- 📊 **Recaps**: Automated project summaries and metrics
-- 📚 **API Docs**: Interactive documentation with examples
-
-### 🔗 API Endpoints
-
-- \`GET /api/v1/status\` - System health check
-- \`GET /api/v1/projects\` - List repositories  
-- \`POST /api/v1/todos\` - Create AI-generated todo lists
-- \`POST /api/v1/recaps\` - Generate project recaps
-- \`POST /api/v1/ai/chat\` - Chat with AI assistant
-- \`POST /api/v1/webhooks\` - Register notification webhooks
-
-### 💡 Cursor Integration Examples
-
-**Auto-generate todos when opening a project:**
-\`\`\`typescript
-export async function onProjectOpen(projectPath: string) {
-  const project = await importProject(projectPath);
-  await generateProjectTodos(project.id, 'Focus on development priorities');
-  showTodosPanel();
-}
-\`\`\`
-
-**Daily standup recap generation:**
-\`\`\`typescript
-export async function generateDailyStandup(projectId: string) {
-  const recap = await fetch('/api/v1/recaps', {
-    method: 'POST',
-    body: JSON.stringify({
-      project_id: projectId,
-      period: 'daily'
-    })
-  });
-  return recap.data.recap.summary;
-}
-\`\`\`
-
-### 🚀 Deployment
-
-Deploy to Vercel with one click:
-\`\`\`bash
-vercel --prod
-\`\`\`
-
-### 📄 License
-
-MIT License - feel free to use in your projects!
-
----
-
-**Built with ❤️ by BishopTech**
+<p>🐛 Found a bug? <a href="https://github.com/mbishopfx/bishoptech-githubhelper/issues">Report it here</a></p>
+</div>

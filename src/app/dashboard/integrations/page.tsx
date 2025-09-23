@@ -27,7 +27,12 @@ import {
   Database,
   MessageSquare,
   Calendar,
-  Mail
+  Mail,
+  FileText,
+  X,
+  Link as LinkIcon,
+  Server,
+  Cloud
 } from 'lucide-react';
 
 interface Integration {
@@ -53,6 +58,14 @@ export default function IntegrationsPage() {
   const [mounted, setMounted] = useState(false);
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newIntegration, setNewIntegration] = useState({
+    type: '',
+    name: '',
+    description: '',
+    userEmail: '',
+    details: ''
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -194,6 +207,136 @@ export default function IntegrationsPage() {
     return integrations.filter(i => i.type === selectedCategory);
   };
 
+  const suggestedIntegrations = [
+    {
+      id: 'discord',
+      name: 'Discord Bot',
+      type: 'discord',
+      description: 'Get repository updates and AI assistance in your Discord server',
+      icon: MessageSquare,
+      color: 'from-indigo-500 to-purple-500',
+      fields: ['Bot Token', 'Channel ID'],
+      popular: true
+    },
+    {
+      id: 'teams',
+      name: 'Microsoft Teams',
+      type: 'teams',
+      description: 'Integration with Microsoft Teams for notifications and collaboration',
+      icon: MessageSquare,
+      color: 'from-blue-600 to-blue-800',
+      fields: ['Webhook URL', 'Team ID'],
+      popular: true
+    },
+    {
+      id: 'linear',
+      name: 'Linear',
+      type: 'linear',
+      description: 'Sync GitHub issues with Linear for better project management',
+      icon: Zap,
+      color: 'from-purple-500 to-pink-500',
+      fields: ['API Key', 'Team ID']
+    },
+    {
+      id: 'notion',
+      name: 'Notion',
+      type: 'notion',
+      description: 'Create automated documentation and project tracking in Notion',
+      icon: Database,
+      color: 'from-gray-600 to-gray-800',
+      fields: ['Integration Token', 'Database ID']
+    },
+    {
+      id: 'webhook',
+      name: 'Custom Webhook',
+      type: 'webhook',
+      description: 'Send repository events to any custom endpoint',
+      icon: Webhook,
+      color: 'from-green-500 to-teal-500',
+      fields: ['Webhook URL', 'Secret Token']
+    },
+    {
+      id: 'jira',
+      name: 'Jira',
+      type: 'jira',
+      description: 'Connect GitHub issues and pull requests with Jira tickets',
+      icon: LinkIcon,
+      color: 'from-blue-500 to-cyan-500',
+      fields: ['API Token', 'Domain', 'Project Key']
+    },
+    {
+      id: 'jenkins',
+      name: 'Jenkins',
+      type: 'jenkins',
+      description: 'Trigger builds and get CI/CD pipeline notifications',
+      icon: Server,
+      color: 'from-orange-500 to-red-500',
+      fields: ['Jenkins URL', 'API Token', 'Job Name']
+    },
+    {
+      id: 'aws',
+      name: 'AWS Services',
+      type: 'aws',
+      description: 'Integration with AWS services like Lambda, SNS, and CloudWatch',
+      icon: Cloud,
+      color: 'from-orange-600 to-yellow-600',
+      fields: ['Access Key ID', 'Secret Access Key', 'Region']
+    }
+  ];
+
+  const handleAddIntegration = async () => {
+    if (!newIntegration.type || !newIntegration.name || !newIntegration.details) {
+      alert('Please fill in the required fields (Integration Name and Details)');
+      return;
+    }
+
+    try {
+      // Send integration request via email
+      const response = await fetch('/api/integration-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: newIntegration.type,
+          name: newIntegration.name,
+          description: newIntegration.description,
+          userEmail: newIntegration.userEmail,
+          details: newIntegration.details,
+          timestamp: new Date().toISOString()
+        }),
+      });
+
+      if (response.ok) {
+        alert('Integration request sent successfully! We\'ll review your request and get back to you.');
+        setShowAddModal(false);
+        setNewIntegration({
+          type: '',
+          name: '',
+          description: '',
+          userEmail: '',
+          details: ''
+        });
+      } else {
+        alert('Failed to send integration request. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error sending integration request:', error);
+      alert('Failed to send integration request. Please try again.');
+    }
+  };
+
+  const resetForm = () => {
+    setNewIntegration({
+      type: '',
+      name: '',
+      description: '',
+      userEmail: '',
+      details: ''
+    });
+    setShowAddModal(false);
+  };
+
   if (!mounted) return null;
 
   const filteredIntegrations = getFilteredIntegrations();
@@ -221,9 +364,12 @@ export default function IntegrationsPage() {
             Settings
           </Link>
           
-          <button className="glass-card px-4 py-2 rounded-lg font-medium text-white hover:scale-105 transition-transform flex items-center gap-2">
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="glass-card px-4 py-2 rounded-lg font-medium text-white hover:scale-105 transition-transform flex items-center gap-2"
+          >
             <Plus className="w-4 h-4" />
-            Add Integration
+            Request Integration
           </button>
         </div>
       </div>
@@ -305,12 +451,15 @@ export default function IntegrationsPage() {
             <h3 className="text-xl font-semibold text-white mb-2">No integrations found</h3>
             <p className="text-gray-400 mb-6">
               {selectedCategory === 'all' 
-                ? 'Add your first integration to get started' 
+                ? 'Request an integration to get started' 
                 : `No ${selectedCategory} integrations configured`}
             </p>
-            <button className="glass-card px-6 py-3 rounded-lg font-medium text-white hover:scale-105 transition-transform inline-flex items-center gap-2">
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="glass-card px-6 py-3 rounded-lg font-medium text-white hover:scale-105 transition-transform inline-flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" />
-              Add Integration
+              Request Integration
             </button>
           </div>
         ) : (
@@ -518,6 +667,185 @@ export default function IntegrationsPage() {
           </div>
         </Link>
       </div>
+
+      {/* Add Integration Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-card p-6 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Request New Integration</h2>
+                <p className="text-gray-400 text-sm mt-1">Tell us what integration you'd like to see implemented</p>
+              </div>
+              <button
+                onClick={resetForm}
+                className="p-2 glass-subtle rounded-lg hover:bg-red-500/20 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400 hover:text-white" />
+              </button>
+            </div>
+
+            {/* Popular Integrations */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="text-lg font-semibold text-white">Popular Integrations</h3>
+                <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full">Recommended</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                {suggestedIntegrations
+                  .filter(suggestion => suggestion.popular)
+                  .map(suggestion => (
+                    <button
+                      key={suggestion.id}
+                      onClick={() => setNewIntegration(prev => ({
+                        ...prev,
+                        type: suggestion.id,
+                        name: suggestion.name,
+                        description: suggestion.description
+                      }))}
+                      className={`p-4 rounded-xl border transition-all text-left ${
+                        newIntegration.type === suggestion.id
+                          ? 'border-blue-500 bg-blue-500/10'
+                          : 'border-white/10 glass-subtle hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg bg-gradient-to-r ${suggestion.color}`}>
+                          <suggestion.icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-white">{suggestion.name}</h4>
+                          <p className="text-sm text-gray-400">{suggestion.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            {/* All Integrations */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-white mb-4">All Available Integrations</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {suggestedIntegrations.map(suggestion => (
+                  <button
+                    key={suggestion.id}
+                    onClick={() => setNewIntegration(prev => ({
+                      ...prev,
+                      type: suggestion.id,
+                      name: suggestion.name,
+                      description: suggestion.description
+                    }))}
+                    className={`p-3 rounded-xl border transition-all text-left ${
+                      newIntegration.type === suggestion.id
+                        ? 'border-blue-500 bg-blue-500/10'
+                        : 'border-white/10 glass-subtle hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg bg-gradient-to-r ${suggestion.color}`}>
+                        <suggestion.icon className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-white text-sm">{suggestion.name}</h4>
+                        <p className="text-xs text-gray-400">{suggestion.description}</p>
+                      </div>
+                      {suggestion.popular && (
+                        <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">Popular</span>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Request Form */}
+            {newIntegration.type && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-4 mb-8"
+              >
+                <h3 className="text-lg font-semibold text-white">Integration Request Details</h3>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Integration Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={newIntegration.name}
+                    onChange={(e) => setNewIntegration(prev => ({...prev, name: e.target.value}))}
+                    className="w-full p-3 glass-subtle rounded-lg border border-white/10 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    placeholder="What would you like to call this integration?"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Your Email (optional)
+                  </label>
+                  <input
+                    type="email"
+                    value={newIntegration.userEmail}
+                    onChange={(e) => setNewIntegration(prev => ({...prev, userEmail: e.target.value}))}
+                    className="w-full p-3 glass-subtle rounded-lg border border-white/10 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    placeholder="your@email.com (for updates on this request)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    What would you like this integration to do? *
+                  </label>
+                  <textarea
+                    value={newIntegration.details}
+                    onChange={(e) => setNewIntegration(prev => ({...prev, details: e.target.value}))}
+                    className="w-full p-3 glass-subtle rounded-lg border border-white/10 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    placeholder="Describe the functionality you'd like to see implemented. For example: 'Send daily repository summaries to our Discord channel' or 'Sync GitHub issues with our Linear workspace'."
+                    rows={4}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Additional Context (optional)
+                  </label>
+                  <textarea
+                    value={newIntegration.description}
+                    onChange={(e) => setNewIntegration(prev => ({...prev, description: e.target.value}))}
+                    className="w-full p-3 glass-subtle rounded-lg border border-white/10 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    placeholder="Any additional details, requirements, or context about your use case."
+                    rows={3}
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+              <button
+                onClick={resetForm}
+                className="px-4 py-2 glass-subtle rounded-lg text-gray-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddIntegration}
+                disabled={!newIntegration.type || !newIntegration.name || !newIntegration.details}
+                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+              >
+                Request Integration
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
